@@ -1,0 +1,9 @@
+### VENV ###
+env/
+
+### IDEs ###
+.idea/
+__pycache__/
+
+### MISC ###
+nohup.out
