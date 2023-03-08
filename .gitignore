@@ -5,5 +5,8 @@ env/
 .idea/
 __pycache__/
 
+### DATA ###
+data.csv
+
 ### MISC ###
 nohup.out
