@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 
-import requests
 import pandas as pd
 import urllib.error
-import rich
+from rich.table import Column
+from rich.progress import Progress, BarColumn, TextColumn, DownloadColumn
 
 
 # With this is that all errors will be ignored, therefore it is not ideal.
@@ -90,16 +90,24 @@ def markets(
 # Concaténer plusieurs tableaux pandas ensemble
 # https://www.geeksforgeeks.org/convert-multiple-json-files-to-csv-python/
 # https://towardsdatascience.com/concatenate-multiple-and-messy-dataframes-efficiently-80847b4da12b
-number_of_page = 5
+number_of_page = 10
 dfs = []
 
-try:
-    for num_page in range(1, number_of_page + 1):
-        df_market = markets(page=num_page)
-        dfs.append(df_market)
+progress = Progress(
+    TextColumn("Downloading...", table_column=Column(ratio=1)),
+    BarColumn(table_column=Column(ratio=2)),
+    "[progress.percentage]{task.percentage:>3.1f}%",
+    "•",
+    DownloadColumn(binary_units=False)
+)
 
-    df_concat = pd.concat(dfs)
-    df_concat.to_csv("data.csv", index=False)
+with progress:
+    try:
+        for num_page in progress.track(range(1, number_of_page + 1)):
+            df_market = markets(page=num_page)
+            dfs.append(df_market)
 
-except urllib.error.HTTPError as err:
-    print(err)
+        df_concat = pd.concat(dfs)
+        df_concat.to_csv("data.csv", index=False)
+    except urllib.error.HTTPError as httpError:
+        print(httpError)
