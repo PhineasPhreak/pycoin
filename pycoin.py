@@ -40,7 +40,12 @@ def markets(
     # answer_markets = requests.get(cg_markets).json()
 
     # Convert json format on DataFrame in pandas
-    pd_markets = pd.read_json(cg_markets, orient="records", encoding="utf-8", dtype="objet")
+    pd_markets = pd.read_json(
+        cg_markets,
+        orient="records",
+        encoding="utf-8",
+        dtype="objet"
+        )
 
     # For delete column in DataFrame
     # https://stackoverflow.com/questions/13411544/delete-a-column-from-a-pandas-dataframe
@@ -109,5 +114,6 @@ with progress:
 
         df_concat = pd.concat(dfs)
         df_concat.to_csv("data.csv", index=False)
+
     except urllib.error.HTTPError as httpError:
         print(httpError)
