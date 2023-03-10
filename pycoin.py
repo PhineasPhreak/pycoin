@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
+import argparse
 import pandas as pd
 import urllib.error
 from rich.table import Column
@@ -22,8 +22,8 @@ def markets(
     sparkline=False,
 ):
     """
-    List all supported coins price, market cap, volume,
-    and market related data
+    Liste de tous les Tokens pris en charge : prix, capitalisation boursière,
+    volume, et les données relatives au marché.
     https://www.delftstack.com/howto/python-pandas/
     """
 
@@ -36,10 +36,7 @@ def markets(
         f"sparkline={sparkline}"
     )
 
-    # Source all data in terminal
-    # answer_markets = requests.get(cg_markets).json()
-
-    # Convert json format on DataFrame in pandas
+    # La conversion du format brute JSON en DataFrame avec pandas
     pd_markets = pd.read_json(
         cg_markets,
         orient="records",
@@ -47,7 +44,8 @@ def markets(
         dtype="objet"
         )
 
-    # For delete column in DataFrame
+    # Sélection de chaque colonne avec pandas, si la colonne n'est pas citée
+    # ci-dessous alors, elle ne sera pas présente dans le DataFrame
     # https://stackoverflow.com/questions/13411544/delete-a-column-from-a-pandas-dataframe
     pd_markets = pd.DataFrame(
         data=pd_markets,
@@ -73,30 +71,15 @@ def markets(
         ],
     )
 
-    # Sets the 'market_cap_rank' column as an index of the my_df DataFrame
+    # Définit la colonne 'market_cap_rank' comme index du DataFrame
     pd_markets_df_rank = pd_markets.set_index("market_cap_rank")
 
-    # pd_markets_df_rank.to_csv("data.csv", encoding="utf-8", index=False)
-
-    # Delete 'image' column in the data Frame
+    # Supprimer la colonne "image" dans le DataFrame.
+    # Si besoin de supprimer une colonne...
     # pd_markets_df_rank.drop('image', axis=1, inplace=True)
 
     return pd_markets_df_rank
 
-# Exemple sans boucle FOR
-# df1 = markets(category=False, page=1)
-# df2 = markets(category=False, page=2)
-
-# df_concat = pd.concat([df1, df2])
-# print(df_concat)
-# df_concat.to_csv("data.csv", index=False)
-
-
-# Concaténer plusieurs tableaux pandas ensemble
-# https://www.geeksforgeeks.org/convert-multiple-json-files-to-csv-python/
-# https://towardsdatascience.com/concatenate-multiple-and-messy-dataframes-efficiently-80847b4da12b
-number_of_page = 10
-dfs = []
 
 progress = Progress(
     TextColumn("Downloading...", table_column=Column(ratio=1)),
@@ -106,14 +89,43 @@ progress = Progress(
     DownloadColumn(binary_units=False)
 )
 
-with progress:
-    try:
-        for num_page in progress.track(range(1, number_of_page + 1)):
-            df_market = markets(page=num_page)
-            dfs.append(df_market)
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawTextHelpFormatter,
+    description="""Use of the CoinGecko API by generating a *.csv file,
+with the non-exhaustive list of Cryptocurrency."""
+)
 
-        df_concat = pd.concat(dfs)
-        df_concat.to_csv("data.csv", index=False)
+# Définition de la commande --page pour personnaliser le nombre de pages dans
+# le fichier data.csv final. Nombre de pages par défaut 10.
+numPage = parser.add_argument_group()
+numPage.add_argument(
+    "-p",
+    "--page",
+    default=10,
+    type=int,
+    metavar="Number",
+    help="""Customization of the number of pages to generate in the data.csv,
+do not exceed 15 for the page generation value, file default value 10"""
+)
 
-    except urllib.error.HTTPError as httpError:
-        print(httpError)
+args = parser.parse_args()
+
+
+if __name__ == '__main__':
+    dfs = []
+    if args.page:
+        with progress:
+            try:
+                for num_page in progress.track(range(1, args.page + 1)):
+                    df_market = markets(page=num_page)
+                    dfs.append(df_market)
+
+                # Concaténer plusieurs tableaux pandas ensemble
+                # https://www.geeksforgeeks.org/convert-multiple-json-files-to-csv-python/
+                # https://towardsdatascience.com/concatenate-multiple-and-messy-dataframes-efficiently-80847b4da12b
+                df_concat = pd.concat(dfs)
+                df_concat.to_csv("data.csv", index=False)
+                df_concat.to_html("data.html", index=False)
+
+            except urllib.error.HTTPError as httpError:
+                print(httpError)
