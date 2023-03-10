@@ -97,8 +97,8 @@ with the non-exhaustive list of Cryptocurrency."""
 
 # Définition de la commande --page pour personnaliser le nombre de pages dans
 # le fichier data.csv final. Nombre de pages par défaut 10.
-numPage = parser.add_argument_group()
-numPage.add_argument(
+num_page = parser.add_argument_group()
+num_page.add_argument(
     "-p",
     "--page",
     default=10,
@@ -127,5 +127,5 @@ if __name__ == '__main__':
                 df_concat.to_csv("data.csv", index=False)
                 df_concat.to_html("data.html", index=False)
 
-            except urllib.error.HTTPError as httpError:
-                print(httpError)
+            except urllib.error.HTTPError as HTTPError:
+                print(HTTPError)
