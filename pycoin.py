@@ -4,7 +4,7 @@
 import argparse
 import pandas as pd
 import urllib.error
-from rich.table import Column
+# from rich.table import Column
 from rich.progress import Progress, BarColumn, TextColumn, DownloadColumn
 
 
@@ -82,11 +82,11 @@ def markets(
 
 
 progress = Progress(
-    TextColumn("Downloading...", table_column=Column(ratio=1)),
-    BarColumn(table_column=Column(ratio=2)),
+    TextColumn(text_format="Downloading..."),
+    BarColumn(bar_width=50),
     "[progress.percentage]{task.percentage:>3.1f}%",
     "•",
-    DownloadColumn(binary_units=False)
+    DownloadColumn()
 )
 
 parser = argparse.ArgumentParser(
