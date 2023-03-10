@@ -4,7 +4,6 @@
 import argparse
 import pandas as pd
 import urllib.error
-# from rich.table import Column
 from rich.progress import Progress, BarColumn, TextColumn, DownloadColumn
 
 
