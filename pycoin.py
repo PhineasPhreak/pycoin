@@ -18,7 +18,7 @@ def markets(
     order="market_cap_desc",
     per_page=250,
     page=1,
-    sparkline=False,
+    sparkline=False
 ):
     """
     Liste de tous les Tokens pris en charge : prix, capitalisation boursière,
@@ -71,15 +71,57 @@ def markets(
     )
 
     # Définit la colonne 'market_cap_rank' comme index du DataFrame
-    pd_markets_df_rank = pd_markets.set_index("market_cap_rank")
+    # pd_markets_df_rank = pd_markets.set_index("market_cap_rank")
+
+    # Trie la colonne "market_cap_rank dans l'ordre croissant
+    pd_markets_df_sort_rank = pd_markets.sort_values("market_cap_rank")
 
     # Supprimer la colonne "image" dans le DataFrame.
     # Si besoin de supprimer une colonne...
     # pd_markets_df_rank.drop('image', axis=1, inplace=True)
 
-    return pd_markets_df_rank
+    return pd_markets_df_sort_rank
 
 
+def generate(
+    extension=("csv", "html"),
+    name="data",
+    pd_index=False
+):
+    """
+    Création de la fonction pour la génération des fichiers...
+    :param extension: Gestion des extensions du fichier de donner,
+    les deux principales sont CSV, HTML.
+    :param name: Nom du fichier de donner, par défaut "data"
+    :param pd_index: Détermine si l'index du tableau doit être présent ou pas
+    :return: Les résultats des différents fichiers CSV ou HTML ou les erreurs.
+    """
+    dfs = []
+    with progress:
+        try:
+            for num_pages in progress.track(range(1, args.page + 1)):
+                df_market = markets(page=num_pages)
+                dfs.append(df_market)
+
+            # Concaténer plusieurs tableaux pandas ensemble
+            # https://www.geeksforgeeks.org/convert-multiple-json-files-to-csv-python/
+            # https://towardsdatascience.com/concatenate-multiple-and-messy-dataframes-efficiently-80847b4da12b
+            df_concat = pd.concat(dfs)
+
+            for exe in extension:
+                if exe == "csv":
+                    df_concat.to_csv(f"{name}.{exe}", index=pd_index)
+
+                elif exe == "html":
+                    df_concat.to_html(f"{name}.{exe}", index=pd_index)
+
+            return None
+
+        except urllib.error.HTTPError as HTTPError:
+            return print(HTTPError)
+
+
+# Personnalisation de la progress bar.
 progress = Progress(
     TextColumn(text_format="Downloading..."),
     BarColumn(bar_width=50),
@@ -103,28 +145,60 @@ num_page.add_argument(
     default=10,
     type=int,
     metavar="Number",
-    help="""Customization of the number of pages to generate in the data.csv,
+    help="""customization of the number of pages to generate in the *.csv,
 do not exceed 15 for the page generation value, file default value 10"""
+)
+
+# Groupe pour verbose ou quiet, groupe mutuellement exclusif
+# soit verbose ou quiet mais pas les deux.
+output = parser.add_mutually_exclusive_group()
+
+# output.add_argument('-q', '--quiet', action='store_true', help='print quiet')
+output.add_argument(
+    "-v",
+    "--verbose",
+    action="store_true",
+    help="increase output visibility"
 )
 
 args = parser.parse_args()
 
 
 if __name__ == '__main__':
-    dfs = []
-    if args.page:
-        with progress:
-            try:
-                for num_page in progress.track(range(1, args.page + 1)):
-                    df_market = markets(page=num_page)
-                    dfs.append(df_market)
+    # TODO: Développer davantage le "argparse"
+    # Implémenter davantage de fonctions par défaut essentiel,
+    # et plus d'option avec l'option verbose...
 
-                # Concaténer plusieurs tableaux pandas ensemble
-                # https://www.geeksforgeeks.org/convert-multiple-json-files-to-csv-python/
-                # https://towardsdatascience.com/concatenate-multiple-and-messy-dataframes-efficiently-80847b4da12b
-                df_concat = pd.concat(dfs)
-                df_concat.to_csv("data.csv", index=False)
-                df_concat.to_html("data.html", index=False)
+    # TODO: Ajouter la fonction ping sur l'API de CoinGecko.
 
-            except urllib.error.HTTPError as HTTPError:
-                print(HTTPError)
+    if args.verbose:
+        if args.page:
+            pass
+
+    else:
+        if args.page:
+            generate(name="data", extension=["html"], pd_index=False)
+
+# Surement utile plus tard pour les options
+# cols_df = list(df_concat.columns.values)
+# print(cols_df)
+#
+# df_concat_print = df_concat.drop(
+#     [
+#         "name",
+#         "market_cap",
+#         "fully_diluted_valuation",
+#         "total_volume",
+#         "high_24h",
+#         "low_24h",
+#         "price_change_24h",
+#         "price_change_percentage_24h",
+#         "market_cap_change_24h",
+#         "market_cap_change_percentage_24h",
+#         "max_supply"
+#     ],
+#     axis=1)
+# pd.set_option('expand_frame_repr', False)
+# pd.set_option('display.max_columns', 999)
+# pd.set_option('display.max_rows', 999)
+# print(df_concat_print)
