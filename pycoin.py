@@ -14,16 +14,23 @@ from rich.progress import Progress, BarColumn, TextColumn, DownloadColumn
 # warnings.filterwarnings("ignore")
 
 def markets(
-    vs_currencies="usd",
-    order="market_cap_desc",
-    per_page=250,
-    page=1,
-    sparkline=False
+    vs_currencies: str = "usd",
+    order: str = "market_cap_desc",
+    per_page: int = 250,
+    page: int = 1,
+    sparkline: bool = False
 ):
     """
     Liste de tous les Tokens pris en charge : prix, capitalisation boursière,
-    volume, et les données relatives au marché.
-    https://www.delftstack.com/howto/python-pandas/
+    volume et les données relatives au marché.
+    https://www.coingecko.com/en/api/documentation
+    :param vs_currencies: Définir la monnaie cible des données de marché
+    :param order: Valeurs valides : (market_cap_asc, market_cap_desc,
+    volume_asc, volume_desc, id_asc, id_desc) trier les résultats par champ.
+    :param per_page: Valeurs valables : 1[...]250 Total des résultats par page
+    :param page: Parcourir les nombres de page demandé
+    :param sparkline: Inclure les données du sparkline des 7 derniers jours
+    :return: Retourne un tableau (DataFrame)
     """
 
     cg_markets = (
@@ -45,6 +52,7 @@ def markets(
 
     # Sélection de chaque colonne avec pandas, si la colonne n'est pas citée
     # ci-dessous alors, elle ne sera pas présente dans le DataFrame
+    # https://www.delftstack.com/howto/python-pandas/
     # https://stackoverflow.com/questions/13411544/delete-a-column-from-a-pandas-dataframe
     pd_markets = pd.DataFrame(
         data=pd_markets,
@@ -84,9 +92,9 @@ def markets(
 
 
 def generate(
-    extension=("csv", "html"),
-    name="data",
-    pd_index=False
+    extension: list = ("csv", "html"),
+    name: str = "data",
+    pd_index: bool = False
 ):
     """
     Création de la fonction pour la génération des fichiers...
@@ -118,7 +126,10 @@ def generate(
             return None
 
         except urllib.error.HTTPError as HTTPError:
-            return print(HTTPError)
+            return print(HTTPError.reason)
+
+        except urllib.error.URLError as URLError:
+            return print(URLError.reason)
 
 
 # Personnalisation de la progress bar.
@@ -150,7 +161,7 @@ do not exceed 15 for the page generation value, file default value 10"""
 )
 
 # Groupe pour verbose ou quiet, groupe mutuellement exclusif
-# soit verbose ou quiet mais pas les deux.
+# soit verbose ou quiet, mais pas les deux.
 output = parser.add_mutually_exclusive_group()
 
 # output.add_argument('-q', '--quiet', action='store_true', help='print quiet')
@@ -177,7 +188,7 @@ if __name__ == '__main__':
 
     else:
         if args.page:
-            generate(name="data", extension=["html"], pd_index=False)
+            generate(name="data", extension=["csv"], pd_index=False)
 
 # Surement utile plus tard pour les options
 # cols_df = list(df_concat.columns.values)
