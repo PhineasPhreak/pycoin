@@ -126,7 +126,7 @@ def generate(
             return None
 
         except urllib.error.HTTPError as HTTPError:
-            return print(HTTPError.reason)
+            return print("Code: ", HTTPError.code, HTTPError.reason)
 
         except urllib.error.URLError as URLError:
             return print(URLError.reason)
