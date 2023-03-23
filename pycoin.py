@@ -3,6 +3,8 @@
 
 import argparse
 import pandas as pd
+import requests
+from timeit import timeit
 import urllib.error
 from rich.progress import Progress, BarColumn, TextColumn, DownloadColumn
 
@@ -12,6 +14,33 @@ from rich.progress import Progress, BarColumn, TextColumn, DownloadColumn
 
 # RuntimeWarning: invalid value encountered in cast values = values.astype(str)
 # warnings.filterwarnings("ignore")
+
+API_PING = "https://api.coingecko.com/api/v3/ping"
+
+
+def check_api(visibility: str = "standard"):
+    """
+    Affiche le status du server de l'API de CoinGecko
+    :param visibility: Determine si le résultat doit être affiché en Verbose ou pas
+    :return: Affiche le résultat de la réponse du server plus le temps en seconde
+    """
+
+    try:
+        answer_ping = requests.get(API_PING).status_code
+        tmp_execution = timeit() * 60
+        tmp_second = "{:,.2f}sec".format(tmp_execution)
+
+        if visibility == "standard":
+            return f"Status : {answer_ping} in {tmp_second}"
+        elif visibility == "verbose":
+            return (
+                f"Check API server Status : {answer_ping} "
+                f"in {tmp_execution}"
+            )
+
+    except requests.exceptions.ConnectionError as req_error:
+        return f"Failed to establish a connection\n\n" f"{req_error.args}"
+
 
 def markets(
     vs_currencies: str = "usd",
@@ -147,17 +176,34 @@ parser = argparse.ArgumentParser(
 with the non-exhaustive list of Cryptocurrency."""
 )
 
+# Affiche les messages du serveur de CoinGecko
+ping = parser.add_argument_group()
+ping.add_argument(
+    "-P",
+    "--ping",
+    action="store_true",
+    help="Check API server status"
+)
+
 # Définition de la commande --page pour personnaliser le nombre de pages dans
 # le fichier data.csv final. Nombre de pages par défaut 10.
 num_page = parser.add_argument_group()
 num_page.add_argument(
     "-p",
     "--page",
-    default=10,
+    default=5,
     type=int,
     metavar="Number",
     help="""customization of the number of pages to generate in the *.csv,
 do not exceed 15 for the page generation value, file default value 10"""
+)
+
+# Affiche la version du programme
+parser.add_argument(
+    "-V",
+    "--version",
+    action="version",
+    version="%(prog)s version 0.2"
 )
 
 # Groupe pour verbose ou quiet, groupe mutuellement exclusif
@@ -180,15 +226,23 @@ if __name__ == '__main__':
     # Implémenter davantage de fonctions par défaut essentiel,
     # et plus d'option avec l'option verbose...
 
-    # TODO: Ajouter la fonction ping sur l'API de CoinGecko.
+    try:
+        if args.verbose:
+            if args.ping:
+                print(check_api(visibility="verbose"))
 
-    if args.verbose:
-        if args.page:
-            pass
+            elif args.page:
+                pass
 
-    else:
-        if args.page:
-            generate(name="data", extension=["csv"], pd_index=False)
+        else:
+            if args.ping:
+                print(check_api(visibility="standard"))
+
+            elif args.page:
+                generate(name="data", extension=["csv"], pd_index=False)
+
+    except KeyboardInterrupt as KeyboardError:
+        print("Keyboard Interrupt")
 
 # Surement utile plus tard pour les options
 # cols_df = list(df_concat.columns.values)
