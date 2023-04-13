@@ -31,9 +31,9 @@ def check_api(visibility: str = "standard"):
         tmp_second = "{:,.2f}sec".format(tmp_execution)
 
         if visibility == "standard":
-            return f"Status : {answer_ping} in {tmp_second}"
+            return print(f"Status : {answer_ping} in {tmp_second}")
         elif visibility == "verbose":
-            return (
+            return print(
                 f"Check API server Status : {answer_ping} "
                 f"in {tmp_execution}"
             )
@@ -121,7 +121,7 @@ def markets(
 
 
 def generate(
-    extension: list = ("csv", "html"),
+    extension: list = ("csv",),
     name: str = "data",
     pd_index: bool = False
 ):
@@ -145,12 +145,12 @@ def generate(
             # https://towardsdatascience.com/concatenate-multiple-and-messy-dataframes-efficiently-80847b4da12b
             df_concat = pd.concat(dfs)
 
-            for exe in extension:
-                if exe == "csv":
-                    df_concat.to_csv(f"{name}.{exe}", index=pd_index)
+            for ext in extension:
+                if ext == "csv":
+                    df_concat.to_csv(f"{name}.{ext}", index=pd_index)
 
-                elif exe == "html":
-                    df_concat.to_html(f"{name}.{exe}", index=pd_index)
+                elif ext == "html":
+                    df_concat.to_html(f"{name}.{ext}", index=pd_index)
 
             return None
 
@@ -229,17 +229,17 @@ if __name__ == '__main__':
     try:
         if args.verbose:
             if args.ping:
-                print(check_api(visibility="verbose"))
+                check_api(visibility="verbose")
 
             elif args.page:
-                pass
+                generate(extension=["csv", "html"])
 
         else:
             if args.ping:
-                print(check_api(visibility="standard"))
+                check_api(visibility="standard")
 
             elif args.page:
-                generate(name="data", extension=["csv"], pd_index=False)
+                generate()
 
     except KeyboardInterrupt as KeyboardError:
         print("Keyboard Interrupt")
