@@ -137,7 +137,11 @@ def generate(
     with progress:
         try:
             for num_pages in progress.track(range(1, args.page + 1)):
-                df_market = markets(page=num_pages)
+                if args.currency:
+                    df_market = markets(vs_currencies=args.currency,
+                                        page=num_pages)
+                else:
+                    df_market = markets(page=num_pages)
                 dfs.append(df_market)
 
             # Concaténer plusieurs tableaux pandas ensemble
@@ -198,6 +202,19 @@ num_page.add_argument(
 do not exceed 15 for the page generation value, file default value 10"""
 )
 
+# Définition de la commande --currency pour choisir le type de
+# devise que nous voulons, USD étant la devise par défaut.
+choice_currency = parser.add_argument_group()
+choice_currency.add_argument(
+    "-c",
+    "--currency",
+    default="usd",
+    type=str,
+    metavar="String",
+    help="""Choose the type of currency we want, 
+    USD being the default currency."""
+)
+
 # Affiche la version du programme
 parser.add_argument(
     "-V",
@@ -239,6 +256,9 @@ if __name__ == '__main__':
                 check_api(visibility="standard")
 
             elif args.page:
+                generate()
+
+            elif args.currency:
                 generate()
 
     except KeyboardInterrupt as KeyboardError:
