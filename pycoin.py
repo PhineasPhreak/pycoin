@@ -186,7 +186,7 @@ ping.add_argument(
     "-P",
     "--ping",
     action="store_true",
-    help="Check API server status"
+    help="check API server status"
 )
 
 # Définition de la commande --page pour personnaliser le nombre de pages dans
@@ -197,9 +197,9 @@ num_page.add_argument(
     "--page",
     default=5,
     type=int,
-    metavar="Number",
+    metavar="int",
     help="""customization of the number of pages to generate in the *.csv,
-do not exceed 15 for the page generation value, file default value 10"""
+do not exceed 15 for the page generation value, file default value 5"""
 )
 
 # Définition de la commande --currency pour choisir le type de
@@ -210,9 +210,9 @@ choice_currency.add_argument(
     "--currency",
     default="usd",
     type=str,
-    metavar="String",
+    metavar="str",
     help="""Choose the type of currency we want, 
-    USD being the default currency."""
+USD being the default currency. Choice: usd, eur, cad, gbp, etc"""
 )
 
 # Affiche la version du programme
