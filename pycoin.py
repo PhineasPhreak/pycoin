@@ -4,6 +4,7 @@
 import argparse
 import pandas as pd
 import requests
+import time
 from timeit import timeit
 import urllib.error
 from rich.progress import Progress, BarColumn, TextColumn, DownloadColumn
@@ -140,8 +141,10 @@ def generate(
                 if args.currency:
                     df_market = markets(vs_currencies=args.currency,
                                         page=num_pages)
+                    # time.sleep(10)  # Espacer les requêtes de 10 seconde entre elle.
                 else:
                     df_market = markets(page=num_pages)
+                    # time.sleep(10)  # Espacer les requêtes de 10 seconde entre elle.
                 dfs.append(df_market)
 
             # Concaténer plusieurs tableaux pandas ensemble
