@@ -211,7 +211,7 @@ choice_currency.add_argument(
     default="usd",
     type=str,
     metavar="str",
-    help="""Choose the type of currency we want, 
+    help="""Choose the type of currency we want,
 USD being the default currency. Choice: usd, eur, cad, gbp, etc"""
 )
 
@@ -264,26 +264,3 @@ if __name__ == '__main__':
     except KeyboardInterrupt as KeyboardError:
         print("Keyboard Interrupt")
 
-# Surement utile plus tard pour les options
-# cols_df = list(df_concat.columns.values)
-# print(cols_df)
-#
-# df_concat_print = df_concat.drop(
-#     [
-#         "name",
-#         "market_cap",
-#         "fully_diluted_valuation",
-#         "total_volume",
-#         "high_24h",
-#         "low_24h",
-#         "price_change_24h",
-#         "price_change_percentage_24h",
-#         "market_cap_change_24h",
-#         "market_cap_change_percentage_24h",
-#         "max_supply"
-#     ],
-#     axis=1)
-# pd.set_option('expand_frame_repr', False)
-# pd.set_option('display.max_columns', 999)
-# pd.set_option('display.max_rows', 999)
-# print(df_concat_print)
