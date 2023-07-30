@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
 import argparse
+import time
 import pandas as pd
 import requests
-import time
 from timeit import timeit
 import urllib.error
 from rich.progress import Progress, BarColumn, TextColumn, DownloadColumn
@@ -27,15 +28,18 @@ def check_api(visibility: str = "standard"):
     """
 
     try:
+        answer_ping_raw = requests.get(API_PING).json()
         answer_ping = requests.get(API_PING).status_code
+
         tmp_execution = timeit() * 60
-        tmp_second = "{:,.2f}sec".format(tmp_execution)
+        tmp_second = "{:,.2f}secs".format(tmp_execution)
 
         if visibility == "standard":
-            return print(f"Status : {answer_ping} in {tmp_second}")
+            return print(f"Status Server : {answer_ping} in {tmp_second}")
         elif visibility == "verbose":
             return print(
-                f"Check API server Status : {answer_ping} "
+                f"Reply Gecko : {answer_ping_raw['gecko_says']} "
+                f"Status Server : {answer_ping} "
                 f"in {tmp_execution}"
             )
 
@@ -48,11 +52,14 @@ def markets(
     order: str = "market_cap_desc",
     per_page: int = 250,
     page: int = 1,
-    sparkline: bool = False
+    sparkline: bool = False,
+    connect_timeout: int = 25,
+    read_timeout: int = 100
 ):
     """
     Liste de tous les Tokens pris en charge : prix, capitalisation boursière,
     volume et les données relatives au marché.
+    Documentation de l'API de CoinGecko :
     https://www.coingecko.com/en/api/documentation
     :param vs_currencies: Définir la monnaie cible des données de marché
     :param order: Valeurs valides : (market_cap_asc, market_cap_desc,
@@ -60,6 +67,11 @@ def markets(
     :param per_page: Valeurs valables : 1[...]250 Total des résultats par page
     :param page: Parcourir les nombres de page demandé
     :param sparkline: Inclure les données du sparkline des 7 derniers jours
+    :param connect_timeout: The connect timeout is the number of seconds
+    Requests will wait for your client to establish a connection to a remote
+    machine call on the socket.
+    :param read_timeout: The read timeout is the number of seconds the client
+    will wait for the server to send a response.
     :return: Retourne un tableau (DataFrame)
     """
 
@@ -73,18 +85,33 @@ def markets(
     )
 
     # La conversion du format brute JSON en DataFrame avec pandas
-    pd_markets = pd.read_json(
-        cg_markets,
-        orient="records",
-        encoding="utf-8",
-        dtype="objet"
-        )
+    # pd_markets = pd.read_json(
+    #     cg_markets,
+    #     orient="records",
+    #     encoding="utf-8",
+    #     dtype="objet"
+    #     )
+
+    # Utilisation de requests pour la récupération d'un format JSON
+    # Info :
+    # https://reqbin.com/code/python/3zdpeao1/python-requests-timeout-example
+    # Read docs :
+    # https://requests.readthedocs.io/en/stable/user/advanced/#timeouts
+    try:
+        pd_markets = requests.get(cg_markets, timeout=(connect_timeout,
+                                                       read_timeout)).json()
+
+    except requests.ConnectTimeout as e:
+        print("Connect Time Error {}", e)
+
+    except requests.ReadTimeout as e:
+        print("Read Time Error {}", e)
 
     # Sélection de chaque colonne avec pandas, si la colonne n'est pas citée
     # ci-dessous alors, elle ne sera pas présente dans le DataFrame
     # https://www.delftstack.com/howto/python-pandas/
     # https://stackoverflow.com/questions/13411544/delete-a-column-from-a-pandas-dataframe
-    pd_markets = pd.DataFrame(
+    dt_markets = pd.DataFrame(
         data=pd_markets,
         columns=[
             "id",
@@ -112,7 +139,7 @@ def markets(
     # pd_markets_df_rank = pd_markets.set_index("market_cap_rank")
 
     # Trie la colonne "market_cap_rank dans l'ordre croissant
-    pd_markets_df_sort_rank = pd_markets.sort_values("market_cap_rank")
+    pd_markets_df_sort_rank = dt_markets.sort_values("market_cap_rank")
 
     # Supprimer la colonne "image" dans le DataFrame.
     # Si besoin de supprimer une colonne...
@@ -139,12 +166,15 @@ def generate(
         try:
             for num_pages in progress.track(range(1, args.page + 1)):
                 if args.currency:
+                    # Juste un message entre chaque génération des pages
+                    # print(f"Generate pages {num_pages}/{args.page},"
+                    #       f"wait 25 Secs for the next one.")
+                    time.sleep(25)
                     df_market = markets(vs_currencies=args.currency,
                                         page=num_pages)
-                    # time.sleep(10)  # Espacer les requêtes de 10 seconde entre elle.
                 else:
+                    time.sleep(25)
                     df_market = markets(page=num_pages)
-                    # time.sleep(10)  # Espacer les requêtes de 10 seconde entre elle.
                 dfs.append(df_market)
 
             # Concaténer plusieurs tableaux pandas ensemble
@@ -243,8 +273,7 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
     # TODO: Développer davantage le "argparse"
-    # Implémenter davantage de fonctions par défaut essentiel,
-    # et plus d'option avec l'option verbose...
+    # Faire une possible modification pour la sélection des extensions
 
     try:
         if args.verbose:
@@ -266,4 +295,3 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt as KeyboardError:
         print("Keyboard Interrupt")
-
