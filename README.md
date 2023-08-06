@@ -7,7 +7,7 @@ This project was written in python. To be able to run this you must have Python 
 To install the required packages you also need to have **pip** or **pip3** installed.
 
 ## Installation Prerequisites
-Used Prerequisites `pandas`, `rich`, `requests`
+Used Prerequisites `pandas`, `rich`, `requests` and `pyinstaller`
 ```shell
 pip3 install -r requirements.txt
 ```
