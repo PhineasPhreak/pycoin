@@ -5,6 +5,9 @@ env/
 .idea/
 __pycache__/
 
+### Pyinstaller ###
+build/
+
 ### DATA ###
 data.csv
 data.html
