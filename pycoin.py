@@ -149,9 +149,10 @@ def markets(
 
 
 def generate(
-    extension: list = ("csv",),
+    extension: list,
     name: str = "data",
-    pd_index: bool = False
+    pd_index: bool = False,
+    time_wait: int = 25,
 ):
     """
     Création de la fonction pour la génération des fichiers...
@@ -159,6 +160,7 @@ def generate(
     les deux principales sont CSV, HTML.
     :param name: Nom du fichier de donner, par défaut "data"
     :param pd_index: Détermine si l'index du tableau doit être présent ou pas
+    :param time_wait: Définition du temps d'attente en seconde entre chaque requête
     :return: Les résultats des différents fichiers CSV ou HTML ou les erreurs.
     """
     dfs = []
@@ -169,11 +171,11 @@ def generate(
                     # Juste un message entre chaque génération des pages
                     # print(f"Generate pages {num_pages}/{args.page},"
                     #       f"wait 25 Secs for the next one.")
-                    time.sleep(25)
+                    time.sleep(time_wait)
                     df_market = markets(vs_currencies=args.currency,
                                         page=num_pages)
                 else:
-                    time.sleep(25)
+                    time.sleep(time_wait)
                     df_market = markets(page=num_pages)
                 dfs.append(df_market)
 
@@ -235,6 +237,17 @@ num_page.add_argument(
 do not exceed 15 for the page generation value, file default value 5"""
 )
 
+time_to_wait = parser.add_argument_group()
+time_to_wait.add_argument(
+    "-t",
+    "--time",
+    default="25",
+    type=int,
+    metavar="int",
+    help="""Define waiting time in seconds between each request,
+Avoid values below 5 seconds (default is 25 seconds)"""
+)
+
 # Définition de la commande --currency pour choisir le type de
 # devise que nous voulons, USD étant la devise par défaut.
 choice_currency = parser.add_argument_group()
@@ -273,6 +286,8 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
     # TODO: Développer davantage le "argparse"
+    # TODO: Parser pour le temps d'attente entre les requests
+    # TODO: Modifier le parser pour la sortie des fichier CSV/HTML
     # Faire une possible modification pour la sélection des extensions
 
     try:
@@ -281,17 +296,17 @@ if __name__ == '__main__':
                 check_api(visibility="verbose")
 
             elif args.page:
-                generate(extension=["csv", "html"])
+                generate(extension=["csv", "html"], time_wait=args.time)
 
         else:
             if args.ping:
                 check_api(visibility="standard")
 
             elif args.page:
-                generate()
+                generate(extension=["csv"], time_wait=args.time)
 
             elif args.currency:
-                generate()
+                generate(extension=["csv"], time_wait=args.time)
 
     except KeyboardInterrupt as KeyboardError:
         print("Keyboard Interrupt")
