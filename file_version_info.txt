@@ -7,8 +7,8 @@ VSVersionInfo(
   ffi=FixedFileInfo(
     # filevers and prodvers should be always a tuple with four items: (1, 2, 3, 4)
     # Set not needed items to zero 0. Must always contain 4 elements.
-    filevers=(1,2,3,4),
-    prodvers=(1,2,3,4),
+    filevers=(1,0,0,0),
+    prodvers=(1,0,0,0),
     # Contains a bitmask that specifies the valid bits 'flags'r
     mask=0x3f,
     # Contains a bitmask that specifies the Boolean attributes of the file.
@@ -30,14 +30,14 @@ VSVersionInfo(
       [
       StringTable(
         u'040904B0',
-        [StringStruct(u'CompanyName', u'My Imaginary Company'),
-        StringStruct(u'FileDescription', u'Simple App'),
-        StringStruct(u'FileVersion', u'1.2.3.4'),
-        StringStruct(u'InternalName', u'Simple App'),
-        StringStruct(u'LegalCopyright', u'My Imaginary Company. All rights reserved.'),
-        StringStruct(u'OriginalFilename', u'SimpleApp.exe'),
-        StringStruct(u'ProductName', u'Simple App'),
-        StringStruct(u'ProductVersion', u'1.2.3.4')])
+        [StringStruct(u'CompanyName', u'None'),
+        StringStruct(u'FileDescription', u'Python wrapper for the CoinGecko API'),
+        StringStruct(u'FileVersion', u'1.0.0.0'),
+        StringStruct(u'InternalName', u'Pycoin'),
+        StringStruct(u'LegalCopyright', u'PhineasPhreak. All rights reserved.'),
+        StringStruct(u'OriginalFilename', u'pycoin.exe'),
+        StringStruct(u'ProductName', u'Pycoin'),
+        StringStruct(u'ProductVersion', u'1.0.0.0')])
       ]), 
     VarFileInfo([VarStruct(u'Translation', [0, 1200, 1033, 1252])])
   ]

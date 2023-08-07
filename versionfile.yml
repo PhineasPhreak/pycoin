@@ -1,10 +1,10 @@
-Version: 1.2.3.4
-CompanyName: My Imaginary Company
-FileDescription: Simple App
-InternalName: Simple App
-LegalCopyright: My Imaginary Company. All rights reserved.
-OriginalFilename: SimpleApp.exe
-ProductName: Simple App
+Version: 1.0.0.0
+CompanyName: None
+FileDescription: Python wrapper for the CoinGecko API
+InternalName: Pycoin
+LegalCopyright: PhineasPhreak. All rights reserved.
+OriginalFilename: pycoin.exe
+ProductName: Pycoin
 Translation:
   - langID: 0
     charsetID: 1200
