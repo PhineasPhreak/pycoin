@@ -18,6 +18,7 @@ from rich.progress import Progress, BarColumn, TextColumn, DownloadColumn
 # warnings.filterwarnings("ignore")
 
 API_PING = "https://api.coingecko.com/api/v3/ping"
+PYCOIN_VERSION = "1.1.0"
 
 
 def check_api(visibility: str = "standard"):
@@ -211,12 +212,13 @@ progress = Progress(
 
 parser = argparse.ArgumentParser(
     formatter_class=argparse.RawTextHelpFormatter,
-    description="""Use of the CoinGecko API by generating a *.csv file,
-with the non-exhaustive list of Cryptocurrency."""
+    description="""Use of the CoinGecko API by generating a *.csv file (or html with verbose option),
+with the non-exhaustive list of Cryptocurrency.""",
+    epilog="""Pycoin home page: <https://github.com/PhineasPhreak/pycoin>"""
 )
 
 # Affiche les messages du serveur de CoinGecko
-ping = parser.add_argument_group()
+ping = parser.add_argument_group("Status Server")
 ping.add_argument(
     "-P",
     "--ping",
@@ -226,17 +228,18 @@ ping.add_argument(
 
 # Définition de la commande --page pour personnaliser le nombre de pages dans
 # le fichier data.csv final. Nombre de pages par défaut 10.
-num_page = parser.add_argument_group()
+num_page = parser.add_argument_group("Options Markets")
 num_page.add_argument(
     "-p",
     "--page",
     default=5,
     type=int,
     metavar="int",
-    help="""customization of the number of pages to generate in the *.csv,
+    help="""Customization of the number of pages to generate in the *.csv,
 do not exceed 15 for the page generation value, file default value 5"""
 )
 
+# La commande 'time' permet de préciser le temps d'attente en seconde entre les requêtes
 time_to_wait = parser.add_argument_group()
 time_to_wait.add_argument(
     "-t",
@@ -246,6 +249,18 @@ time_to_wait.add_argument(
     metavar="int",
     help="""Define waiting time in seconds between each request,
 Avoid values below 5 seconds (default is 25 seconds)"""
+)
+
+# Définition de la commande --name pour choisir le type de
+# nom de fichier que vous souhaitez par défaut "data"
+name_file = parser.add_argument_group()
+name_file.add_argument(
+    "-n",
+    "--name",
+    default="data",
+    type=str,
+    metavar="str",
+    help="""Define output file name. default 'data'."""
 )
 
 # Définition de la commande --currency pour choisir le type de
@@ -266,7 +281,7 @@ parser.add_argument(
     "-V",
     "--version",
     action="version",
-    version="%(prog)s version 0.2"
+    version=f"%(prog)s version {PYCOIN_VERSION}"
 )
 
 # Groupe pour verbose ou quiet, groupe mutuellement exclusif
@@ -285,10 +300,9 @@ args = parser.parse_args()
 
 
 if __name__ == '__main__':
-    # TODO: Développer davantage le "argparse"
-    # TODO: Parser pour le temps d'attente entre les requests
-    # TODO: Modifier le parser pour la sortie des fichier CSV/HTML
-    # Faire une possible modification pour la sélection des extensions
+    # TODO: Développer davantage le "argparse"...
+    # TODO: Ajouter davantage d'option disponible de l'API coingecko...
+    # À voir pour des ajouts comme 'exchange', 'global' (voir API coingecko)
 
     try:
         if args.verbose:
@@ -296,17 +310,14 @@ if __name__ == '__main__':
                 check_api(visibility="verbose")
 
             elif args.page:
-                generate(extension=["csv", "html"], time_wait=args.time)
+                generate(extension=["csv", "html"], name=args.name,time_wait=args.time)
 
         else:
             if args.ping:
                 check_api(visibility="standard")
 
-            elif args.page:
-                generate(extension=["csv"], time_wait=args.time)
-
-            elif args.currency:
-                generate(extension=["csv"], time_wait=args.time)
+            elif args.page and args.currency:
+                generate(extension=["csv"], name=args.name, time_wait=args.time)
 
     except KeyboardInterrupt as KeyboardError:
         print("Keyboard Interrupt")
