@@ -1,6 +1,38 @@
 # pycoin
 Python wrapper for the [CoinGecko API](https://www.coingecko.com/en/api/documentation) and argparse
 
+# Preview options
+```
+usage: pycoin.py [-h] [-P] [-p int] [-t int] [-n str] [-c str] [-V] [-v]
+
+Use of the CoinGecko API by generating a *.csv file,
+with the non-exhaustive list of Cryptocurrency.
+
+options:
+  -h, --help            show this help message and exit
+  -V, --version         show program's version number and exit
+  -v, --verbose         increase output visibility
+
+Status Server:
+  -P, --ping            check API server status
+
+Options Markets:
+  -p int, --page int    Customization of the number of pages to generate in the *.csv,
+                        do not exceed 15 for the page generation value, file default value 5
+
+  -t int, --time int    Define waiting time in seconds between each request,
+                        Avoid values below 5 seconds (default is 25 seconds)
+
+  -n str, --name str    Define output file name. default 'data'.
+
+  -c str, --currency str
+                        Choose the type of currency we want,
+                        USD being the default currency. Choice: usd, eur, cad, gbp, etc
+
+Pycoin home page: <https://github.com/PhineasPhreak/pycoin>
+
+```
+
 # Getting Started
 ## Prerequisites
 This project was written in python. To be able to run this you must have Python 3 installed.
