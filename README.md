@@ -3,9 +3,9 @@ Python wrapper for the [CoinGecko API](https://www.coingecko.com/en/api/document
 
 # Preview options
 ```
-usage: pycoin.py [-h] [-P] [-p int] [-t int] [-n str] [-c str] [-V] [-v]
+usage: pycoin.py [-h] [-n str] [-P] [-p int] [-t int] [-c str] [-g] [-G] [-V] [-v]
 
-Use of the CoinGecko API by generating a *.csv file,
+Use of the CoinGecko API by generating a *.csv file (or html with verbose option),
 with the non-exhaustive list of Cryptocurrency.
 
 options:
@@ -13,21 +13,23 @@ options:
   -V, --version         show program's version number and exit
   -v, --verbose         increase output visibility
 
+  -n str, --name str    Define output file name. default 'market'.
+
 Status Server:
   -P, --ping            check API server status
 
-Options Markets:
+Options market:
   -p int, --page int    Customization of the number of pages to generate in the *.csv,
-                        do not exceed 15 for the page generation value, file default value 5
-
+                        do not exceed 15 for the page generation value
   -t int, --time int    Define waiting time in seconds between each request,
                         Avoid values below 5 seconds (default is 25 seconds)
-
-  -n str, --name str    Define output file name. default 'data'.
-
   -c str, --currency str
                         Choose the type of currency we want,
                         USD being the default currency. Choice: usd, eur, cad, gbp, etc
+
+Get cryptocurrency global data:
+  -g, --global          Get global data - total_volume, total_market_cap, ongoing icos etc
+  -G, --global_defi     Get Top 100 Cryptocurrency Global Eecentralized Finance(defi) data
 
 Pycoin home page: <https://github.com/PhineasPhreak/pycoin>
 
