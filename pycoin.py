@@ -17,8 +17,33 @@ from rich.progress import Progress, BarColumn, TextColumn, DownloadColumn
 # RuntimeWarning: invalid value encountered in cast values = values.astype(str)
 # warnings.filterwarnings("ignore")
 
-API_PING = "https://api.coingecko.com/api/v3/ping"
+
+# Liste des Requêtes URL avec aucune modification (Statique)
+API_URL_BASE = "https://api.coingecko.com/api/v3/"
+
+API_PING = f"{API_URL_BASE}ping"
+GLOBAL_DATA = f"{API_URL_BASE}global"
+GLOBAL_DATA_DEFI = f"{API_URL_BASE}global/decentralized_finance_defi"
+
+# Variables pour les erreurs de "timeout" pour les requêtes
+# INFO:
+# - ConnectTimeout: The connect timeout is the number of seconds Requests will wait for your client to establish a connection to a remote machine call on the socket.
+# - ReadTimeout: The read timeout is the number of seconds the client will wait for the server to send a response.
+REQ_CONNECT_TIMEOUT = 25
+REQ_READ_TIMEOUT = 100
+
+# Variable static pour la version de Pycoin
 PYCOIN_VERSION = "1.1.0"
+
+
+def tmp_action():
+    """Compteur pour le temps d'exécution d'une commande"""
+    tmp_execution = timeit() * 60
+    tmp_second = "{:,.2f}secs".format(tmp_execution)
+    reponse = {"tmp_second": tmp_second, "tmp_execution": tmp_execution}
+
+    # return tmp_second, tmp_execution
+    return reponse
 
 
 def check_api(visibility: str = "standard"):
@@ -32,16 +57,13 @@ def check_api(visibility: str = "standard"):
         answer_ping_raw = requests.get(API_PING).json()
         answer_ping = requests.get(API_PING).status_code
 
-        tmp_execution = timeit() * 60
-        tmp_second = "{:,.2f}secs".format(tmp_execution)
-
         if visibility == "standard":
-            return print(f"Status Server : {answer_ping} in {tmp_second}")
+            return print(f"Status Server : {answer_ping} in {tmp_action()['tmp_second']}")
         elif visibility == "verbose":
             return print(
                 f"Reply Gecko : {answer_ping_raw['gecko_says']} "
                 f"Status Server : {answer_ping} "
-                f"in {tmp_execution}"
+                f"in {tmp_action()['tmp_execution']}"
             )
 
     except requests.exceptions.ConnectionError as req_error:
@@ -53,10 +75,8 @@ def markets(
     order: str = "market_cap_desc",
     per_page: int = 250,
     page: int = 1,
-    sparkline: bool = False,
-    connect_timeout: int = 25,
-    read_timeout: int = 100
-):
+    sparkline: bool = False
+    ):
     """
     Liste de tous les Tokens pris en charge : prix, capitalisation boursière,
     volume et les données relatives au marché.
@@ -68,11 +88,6 @@ def markets(
     :param per_page: Valeurs valables : 1[...]250 Total des résultats par page
     :param page: Parcourir les nombres de page demandé
     :param sparkline: Inclure les données du sparkline des 7 derniers jours
-    :param connect_timeout: The connect timeout is the number of seconds
-    Requests will wait for your client to establish a connection to a remote
-    machine call on the socket.
-    :param read_timeout: The read timeout is the number of seconds the client
-    will wait for the server to send a response.
     :return: Retourne un tableau (DataFrame)
     """
 
@@ -99,14 +114,15 @@ def markets(
     # Read docs :
     # https://requests.readthedocs.io/en/stable/user/advanced/#timeouts
     try:
-        pd_markets = requests.get(cg_markets, timeout=(connect_timeout,
-                                                       read_timeout)).json()
+        pd_markets = requests.get(
+            cg_markets,
+            timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
 
-    except requests.ConnectTimeout as e:
-        print("Connect Time Error {}", e)
+    except requests.ConnectTimeout as error_connect_timeout:
+        print("Connect Time Error {0}", error_connect_timeout)
 
-    except requests.ReadTimeout as e:
-        print("Read Time Error {}", e)
+    except requests.ReadTimeout as error_read_timeout:
+        print("Read Time Error {0}", error_read_timeout)
 
     # Sélection de chaque colonne avec pandas, si la colonne n'est pas citée
     # ci-dessous alors, elle ne sera pas présente dans le DataFrame
@@ -132,8 +148,8 @@ def markets(
             "circulating_supply",
             "total_supply",
             "max_supply",
-            "last_updated",
-        ],
+            "last_updated"
+        ]
     )
 
     # Définit la colonne 'market_cap_rank' comme index du DataFrame
@@ -151,15 +167,15 @@ def markets(
 
 def generate(
     extension: list,
-    name: str = "data",
+    name: str = "market",
     pd_index: bool = False,
-    time_wait: int = 25,
-):
+    time_wait: int = 25
+    ):
     """
     Création de la fonction pour la génération des fichiers...
     :param extension: Gestion des extensions du fichier de donner,
     les deux principales sont CSV, HTML.
-    :param name: Nom du fichier de donner, par défaut "data"
+    :param name: Nom du fichier de donner, par défaut "market"
     :param pd_index: Détermine si l'index du tableau doit être présent ou pas
     :param time_wait: Définition du temps d'attente en seconde entre chaque requête
     :return: Les résultats des différents fichiers CSV ou HTML ou les erreurs.
@@ -175,6 +191,7 @@ def generate(
                     time.sleep(time_wait)
                     df_market = markets(vs_currencies=args.currency,
                                         page=num_pages)
+
                 else:
                     time.sleep(time_wait)
                     df_market = markets(page=num_pages)
@@ -192,13 +209,127 @@ def generate(
                 elif ext == "html":
                     df_concat.to_html(f"{name}.{ext}", index=pd_index)
 
-            return None
+            return print(f"Successful creation of {name}.{extension} files")
 
         except urllib.error.HTTPError as HTTPError:
             return print("Code: ", HTTPError.code, HTTPError.reason)
 
         except urllib.error.URLError as URLError:
             return print(URLError.reason)
+
+
+def global_data_market(
+        extension: list,
+        name: str = "global",
+        type_data: list = ["default", "defi"]
+        ):
+    """
+    Création de la fonction pour la génération des fichiers "global" et
+    "global_defi".
+    :param extension: Gestion des extensions du fichier de donner,
+    les deux principales sont CSV, HTML.
+    :param name: Nom du fichier de donner, par défaut "global", "global_defi"
+    :param type_data: Liste des possibilités pour la génération des fichiers de sortie :
+    default: global et defi: global_defi
+    """
+
+    # Affiche le DataFrame pandas dans le terminal avec les options ci-dessous
+    # pas utile si pas d'affichage dans le terminal.
+    # pd.options.display.max_rows = None
+    # pd.options.display.max_columns = None
+    # pd.options.display.max_colwidth = None
+    # pd.options.display.width = 1000
+    # pd.options.display.float_format = '{:,.2f}'.format
+    # pd.options.display.precision = 2
+
+    df_stack = []
+    match type_data:
+        case "default":
+            # Raw data
+            global_data_json_data = requests.get(
+                GLOBAL_DATA,
+                timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
+            pd_global_data_df_data = pd.DataFrame(
+                data=global_data_json_data,
+                index=[
+                "active_cryptocurrencies",
+                "upcoming_icos",
+                "ongoing_icos",
+                "ended_icos",
+                "markets",
+                "market_cap_change_percentage_24h_usd",
+                "updated_at"
+            ])
+            # pd_global_data_df_data.to_csv("raw_data.csv")
+            df_stack.append(pd_global_data_df_data)
+
+
+            # total_market_cap
+            global_data_json_total_market_cap = requests.get(
+                GLOBAL_DATA,
+                timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json() \
+                ["data"]["total_market_cap"]
+            pd_global_data_df_total_market_cap = pd.DataFrame(
+                data=global_data_json_total_market_cap,
+                index=["total_market_cap"])
+            # pd_global_data_df_total_market_cap.to_csv("total_market_cap.csv")
+            df_stack.append(pd_global_data_df_total_market_cap)
+
+
+            # total_volume
+            global_data_json_total_volume = requests.get(
+                GLOBAL_DATA,
+                timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json() \
+                ["data"]["total_volume"]
+            pd_global_data_df_total_volume = pd.DataFrame(
+                data=global_data_json_total_volume,
+                index=["total_volume"])
+            # pd_global_data_df_total_volume.to_csv("total_volume.csv")
+            df_stack.append(pd_global_data_df_total_volume)
+
+
+            # market_cap_percentage
+            global_data_json_market_cap_percentage = requests.get(
+                GLOBAL_DATA,
+                timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json() \
+                ["data"]["market_cap_percentage"]
+            pd_global_data_df_market_cap_percentage = pd.DataFrame(
+                data=global_data_json_market_cap_percentage,
+                index=["market_cap_percentage"])
+            # pd_global_data_df_market_cap_percentage.to_csv("market_cap_percentage.csv")
+            df_stack.append(pd_global_data_df_market_cap_percentage)
+
+            # Concaténer les différents DataFrame en un seul au format CSV.
+            df_concat = pd.concat(df_stack)
+            # df_concat.to_csv("all_data.csv")
+            # df_concat.to_html("all_data.html")
+
+            for ext in extension:
+                if ext == "csv":
+                    df_concat.to_csv(f"{name}.{ext}")
+
+                elif ext == "html":
+                    df_concat.to_html(f"{name}.{ext}")
+
+            return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
+
+        case "defi":
+            global_data_json = requests.get(
+                GLOBAL_DATA_DEFI,
+                timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
+            pd_global_data_df = pd.DataFrame(data=global_data_json, columns=["data"])
+
+            for ext in extension:
+                if ext == "csv":
+                    pd_global_data_df.to_csv(f"{name}.{ext}", header=False)
+
+                elif ext == "html":
+                    pd_global_data_df.to_html(f"{name}.{ext}", header=False)
+
+            return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
+
+        case _:
+            return print(f"Error <{type_data}> is not a valid argument.")
 
 
 # Personnalisation de la progress bar.
@@ -217,6 +348,19 @@ with the non-exhaustive list of Cryptocurrency.""",
     epilog="""Pycoin home page: <https://github.com/PhineasPhreak/pycoin>"""
 )
 
+# Définition de la commande --name qui est une commande commune pour choisir le nom de fichier
+# de sortie que vous souhaitez, mais attention pas son extension.
+# La valeur par défaut comme nom de fichier est "market".
+name_default = parser.add_argument_group()
+name_default.add_argument(
+    "-n",
+    "--name",
+    default="market",
+    type=str,
+    metavar="str",
+    help="""Define output file name. default 'market'."""
+)
+
 # Affiche les messages du serveur de CoinGecko
 ping = parser.add_argument_group("Status Server")
 ping.add_argument(
@@ -228,20 +372,21 @@ ping.add_argument(
 
 # Définition de la commande --page pour personnaliser le nombre de pages dans
 # le fichier data.csv final. Nombre de pages par défaut 10.
-num_page = parser.add_argument_group("Options Markets")
-num_page.add_argument(
+market_data = parser.add_argument_group("Options market")
+market_data.add_argument(
     "-p",
     "--page",
-    default=5,
+    # Si cette option <default=5> et de commenter le fichier python lancera automatiquement
+    # la génération d'un fichier CSV avec 5 page, même sans argument donner au fichier python.
+    # default=5,
     type=int,
     metavar="int",
     help="""Customization of the number of pages to generate in the *.csv,
-do not exceed 15 for the page generation value, file default value 5"""
+do not exceed 15 for the page generation value"""
 )
 
 # La commande 'time' permet de préciser le temps d'attente en seconde entre les requêtes
-time_to_wait = parser.add_argument_group()
-time_to_wait.add_argument(
+market_data.add_argument(
     "-t",
     "--time",
     default="25",
@@ -251,22 +396,18 @@ time_to_wait.add_argument(
 Avoid values below 5 seconds (default is 25 seconds)"""
 )
 
-# Définition de la commande --name pour choisir le type de
-# nom de fichier que vous souhaitez par défaut "data"
-name_file = parser.add_argument_group()
-name_file.add_argument(
-    "-n",
-    "--name",
-    default="data",
-    type=str,
-    metavar="str",
-    help="""Define output file name. default 'data'."""
-)
+# market_data.add_argument(
+#     "-n",
+#     "--name",
+#     default="market",
+#     type=str,
+#     metavar="str",
+#     help="""Define output file name. default 'market'."""
+# )
 
 # Définition de la commande --currency pour choisir le type de
 # devise que nous voulons, USD étant la devise par défaut.
-choice_currency = parser.add_argument_group()
-choice_currency.add_argument(
+market_data.add_argument(
     "-c",
     "--currency",
     default="usd",
@@ -274,6 +415,46 @@ choice_currency.add_argument(
     metavar="str",
     help="""Choose the type of currency we want,
 USD being the default currency. Choice: usd, eur, cad, gbp, etc"""
+)
+
+# CODE BLOCK - SI UTILISATION D'UN SUBPARSER...
+# sub_parsers_global = parser.add_subparsers(title="Get cryptocurrency global data", dest="global_cmd")
+# global_data = sub_parsers_global.add_parser("global", help="Get global data and for defi")
+# global_data.add_argument(
+#     "-g",
+#     "--global",
+#     type=str,
+#     metavar="default, defi",
+#     dest="global_data",
+#     help="""Get global data: total_volume, total_market_cap, ongoing icos etc"""
+# )
+#
+# global_data.add_argument(
+#     "-n",
+#     "--name",
+#     default="global",
+#     type=str,
+#     metavar="str",
+#     help="""okay"""
+# )
+
+# Création du groupe global_data pour "global"
+global_data = parser.add_argument_group("Get cryptocurrency global data")
+global_data.add_argument(
+    "-g",
+    "--global",
+    action="store_true",
+    dest="global_data",
+    help="""Get global data - total_volume, total_market_cap, ongoing icos etc"""
+)
+
+# Ajout au groupe global_data pour "decentralized_finance_defi"
+global_data.add_argument(
+    "-G",
+    "--global_defi",
+    action="store_true",
+    dest="global_defi",
+    help="""Get Top 100 Cryptocurrency Global Eecentralized Finance(defi) data"""
 )
 
 # Affiche la version du programme
@@ -302,6 +483,7 @@ args = parser.parse_args()
 if __name__ == '__main__':
     # TODO: Développer davantage le "argparse"...
     # TODO: Ajouter davantage d'option disponible de l'API coingecko...
+    # TODO: Avoir le choix de l'extension pour le fichier de sortie "json", "csv", "html" et voir pour d'autres extensions si possible.
     # À voir pour des ajouts comme 'exchange', 'global' (voir API coingecko)
 
     try:
@@ -309,8 +491,8 @@ if __name__ == '__main__':
             if args.ping:
                 check_api(visibility="verbose")
 
-            elif args.page:
-                generate(extension=["csv", "html"], name=args.name,time_wait=args.time)
+            elif args.page and args.currency:
+                generate(extension=["csv", "html"], name=args.name, time_wait=args.time)
 
         else:
             if args.ping:
@@ -318,6 +500,28 @@ if __name__ == '__main__':
 
             elif args.page and args.currency:
                 generate(extension=["csv"], name=args.name, time_wait=args.time)
+
+
+            elif args.global_data:
+                if args.name == "market":
+                    global_data_market(extension=["csv"], name="global_data", type_data="default")
+                else:
+                    global_data_market(extension=["csv"], name=args.name, type_data="default")
+
+            elif args.global_defi:
+                if args.name == "market":
+                    global_data_market(extension=["csv"], name="global_defi", type_data="defi")
+                else:
+                    global_data_market(extension=["csv"], name=args.name, type_data="defi")
+
+            # CODE BLOCK - SI UTILISATION D'UN SUBPARSER...
+            # elif args.global_cmd == "global":
+            #     global_data_market(extension=["csv"], name=args.name, type_data=args.global_data)
+
+            else:
+                # Si aucun argument saisi, afficher l'aide par défaut.
+                print("No arguments entered, display default help.")
+                args = parser.parse_args(["--help"])
 
     except KeyboardInterrupt as KeyboardError:
         print("Keyboard Interrupt")
