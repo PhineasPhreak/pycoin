@@ -2,6 +2,7 @@
 env/
 
 ### IDEs ###
+.vscode/
 .idea/
 __pycache__/
 
@@ -10,8 +11,10 @@ build/
 dist/
 
 ### DATA ###
-data.csv
-data.html
+market.csv
+market.html
+global_data.csv
+global_defi.csv
 
 ### MISC ###
 nohup.out
