@@ -1,5 +1,5 @@
 # pycoin
-Python wrapper for the [CoinGecko API](https://www.coingecko.com/en/api/documentation) and argparse
+Python wrapper for the [CoinGecko API](https://www.coingecko.com/en/api/documentation) and [argparse](https://docs.python.org/3/library/argparse.html)
 
 # Preview options
 ```
