@@ -33,7 +33,7 @@ REQ_CONNECT_TIMEOUT = 25
 REQ_READ_TIMEOUT = 100
 
 # Variable static pour la version de Pycoin
-PYCOIN_VERSION = "1.1.0"
+PYCOIN_VERSION = "1.3.0"
 
 
 def tmp_action():
@@ -117,6 +117,15 @@ def markets(
         pd_markets = requests.get(
             cg_markets,
             timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
+
+        # Capture du status code 429 (TooManyRequests)
+        # Trop d'erreurs 429, cela rend le programme inutilisable, à voir sur le long terme si des problèmes de donner qui du coup ne sont pas récupérés par les requêtes.
+        # status_code = requests.get(
+        #     cg_markets,
+        #     timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).status_code
+        # if status_code == 429:
+        #     print("HTTPS Error 429: Too Many Requests")
+        #     exit(1)
 
     except requests.ConnectTimeout as error_connect_timeout:
         print("Connect Time Error {0}", error_connect_timeout)
@@ -209,6 +218,9 @@ def generate(
                 elif ext == "html":
                     df_concat.to_html(f"{name}.{ext}", index=pd_index)
 
+                elif ext == "json":
+                    df_concat.to_json(f"{name}.{ext}", orient="columns")
+
             return print(f"Successful creation of {name}.{extension} files")
 
         except urllib.error.HTTPError as HTTPError:
@@ -245,12 +257,17 @@ def global_data_market(
     df_stack = []
     match type_data:
         case "default":
-            # Raw data
-            global_data_json_data = requests.get(
+            # Raw date for JSON file
+            raw_global_data_json_data = requests.get(
+                GLOBAL_DATA,
+                timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
+
+            # Raw data for DataFrame
+            global_data_json = requests.get(
                 GLOBAL_DATA,
                 timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
             pd_global_data_df_data = pd.DataFrame(
-                data=global_data_json_data,
+                data=global_data_json,
                 index=[
                 "active_cryptocurrencies",
                 "upcoming_icos",
@@ -311,6 +328,10 @@ def global_data_market(
                 elif ext == "html":
                     df_concat.to_html(f"{name}.{ext}")
 
+                elif ext == "json":
+                    with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
+                        json_file.write(str(raw_global_data_json_data))
+
             return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
         case "defi":
@@ -325,6 +346,10 @@ def global_data_market(
 
                 elif ext == "html":
                     pd_global_data_df.to_html(f"{name}.{ext}", header=False)
+
+                elif ext == "json":
+                    with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
+                        json_file.write(str(global_data_json))
 
             return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
@@ -359,6 +384,16 @@ name_default.add_argument(
     type=str,
     metavar="str",
     help="""Define output file name. default 'market'."""
+)
+
+extension_default = parser.add_argument_group()
+extension_default.add_argument(
+    "-e",
+    "--extension",
+    default="csv",
+    choices=["csv", "html", "json"],
+    metavar="str",
+    help="""Selects CSV, HTML and JSON output file extensions"""
 )
 
 # Affiche les messages du serveur de CoinGecko
@@ -492,27 +527,27 @@ if __name__ == '__main__':
                 check_api(visibility="verbose")
 
             elif args.page and args.currency:
-                generate(extension=["csv", "html"], name=args.name, time_wait=args.time)
+                generate(extension=["csv", "html", "json"], name=args.name, time_wait=args.time)
 
         else:
             if args.ping:
                 check_api(visibility="standard")
 
             elif args.page and args.currency:
-                generate(extension=["csv"], name=args.name, time_wait=args.time)
+                generate(extension=[args.extension], name=args.name, time_wait=args.time)
 
 
             elif args.global_data:
                 if args.name == "market":
-                    global_data_market(extension=["csv"], name="global_data", type_data="default")
+                    global_data_market(extension=[args.extension], name="global_data", type_data="default")
                 else:
-                    global_data_market(extension=["csv"], name=args.name, type_data="default")
+                    global_data_market(extension=[args.extension], name=args.name, type_data="default")
 
             elif args.global_defi:
                 if args.name == "market":
-                    global_data_market(extension=["csv"], name="global_defi", type_data="defi")
+                    global_data_market(extension=[args.extension], name="global_defi", type_data="defi")
                 else:
-                    global_data_market(extension=["csv"], name=args.name, type_data="defi")
+                    global_data_market(extension=[args.extension], name=args.name, type_data="defi")
 
             # CODE BLOCK - SI UTILISATION D'UN SUBPARSER...
             # elif args.global_cmd == "global":
