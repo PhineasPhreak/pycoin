@@ -119,7 +119,7 @@ def markets(
             timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
 
         # Capture du status code 429 (TooManyRequests)
-        # Trop d'erreurs 429, cela rend le programme inutilisable, à voir sur le long terme si des problèmes de donner qui du coup ne sont pas récupérés par les requêtes.
+        # Trop d'erreurs 429, cela rend le programme inutilisable, à voir sur le long terme si des problèmes de manque de donner.
         # status_code = requests.get(
         #     cg_markets,
         #     timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).status_code
@@ -231,18 +231,14 @@ def generate(
 
 
 def global_data_market(
-        extension: list,
-        name: str = "global",
-        type_data: list = ["default", "defi"]
-        ):
+    extension: list,
+    name: str = "global"
+    ):
     """
-    Création de la fonction pour la génération des fichiers "global" et
-    "global_defi".
+    Création de la fonction pour la génération des fichiers "global"
     :param extension: Gestion des extensions du fichier de donner,
     les deux principales sont CSV, HTML.
-    :param name: Nom du fichier de donner, par défaut "global", "global_defi"
-    :param type_data: Liste des possibilités pour la génération des fichiers de sortie :
-    default: global et defi: global_defi
+    :param name: Nom du fichier de donner, par défaut "global"
     """
 
     # Affiche le DataFrame pandas dans le terminal avec les options ci-dessous
@@ -255,106 +251,111 @@ def global_data_market(
     # pd.options.display.precision = 2
 
     df_stack = []
-    match type_data:
-        case "default":
-            # Raw date for JSON file
-            raw_global_data_json_data = requests.get(
-                GLOBAL_DATA,
-                timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
 
-            # Raw data for DataFrame
-            global_data_json = requests.get(
-                GLOBAL_DATA,
-                timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
-            pd_global_data_df_data = pd.DataFrame(
-                data=global_data_json,
-                index=[
-                "active_cryptocurrencies",
-                "upcoming_icos",
-                "ongoing_icos",
-                "ended_icos",
-                "markets",
-                "market_cap_change_percentage_24h_usd",
-                "updated_at"
-            ])
-            # pd_global_data_df_data.to_csv("raw_data.csv")
-            df_stack.append(pd_global_data_df_data)
+    # Raw date for JSON file
+    raw_global_data_json_data = requests.get(
+        GLOBAL_DATA,
+        timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
 
-
-            # total_market_cap
-            global_data_json_total_market_cap = requests.get(
-                GLOBAL_DATA,
-                timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json() \
-                ["data"]["total_market_cap"]
-            pd_global_data_df_total_market_cap = pd.DataFrame(
-                data=global_data_json_total_market_cap,
-                index=["total_market_cap"])
-            # pd_global_data_df_total_market_cap.to_csv("total_market_cap.csv")
-            df_stack.append(pd_global_data_df_total_market_cap)
+    # Raw data for DataFrame
+    global_data_json = requests.get(
+        GLOBAL_DATA,
+        timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
+    pd_global_data_df_data = pd.DataFrame(
+        data=global_data_json,
+        index=[
+        "active_cryptocurrencies",
+        "upcoming_icos",
+        "ongoing_icos",
+        "ended_icos",
+        "markets",
+        "market_cap_change_percentage_24h_usd",
+        "updated_at"
+    ])
+    # pd_global_data_df_data.to_csv("raw_data.csv")
+    df_stack.append(pd_global_data_df_data)
 
 
-            # total_volume
-            global_data_json_total_volume = requests.get(
-                GLOBAL_DATA,
-                timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json() \
-                ["data"]["total_volume"]
-            pd_global_data_df_total_volume = pd.DataFrame(
-                data=global_data_json_total_volume,
-                index=["total_volume"])
-            # pd_global_data_df_total_volume.to_csv("total_volume.csv")
-            df_stack.append(pd_global_data_df_total_volume)
+    # total_market_cap
+    global_data_json_total_market_cap = requests.get(
+        GLOBAL_DATA,
+        timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json() \
+        ["data"]["total_market_cap"]
+    pd_global_data_df_total_market_cap = pd.DataFrame(
+        data=global_data_json_total_market_cap,
+        index=["total_market_cap"])
+    # pd_global_data_df_total_market_cap.to_csv("total_market_cap.csv")
+    df_stack.append(pd_global_data_df_total_market_cap)
 
 
-            # market_cap_percentage
-            global_data_json_market_cap_percentage = requests.get(
-                GLOBAL_DATA,
-                timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json() \
-                ["data"]["market_cap_percentage"]
-            pd_global_data_df_market_cap_percentage = pd.DataFrame(
-                data=global_data_json_market_cap_percentage,
-                index=["market_cap_percentage"])
-            # pd_global_data_df_market_cap_percentage.to_csv("market_cap_percentage.csv")
-            df_stack.append(pd_global_data_df_market_cap_percentage)
+    # total_volume
+    global_data_json_total_volume = requests.get(
+        GLOBAL_DATA,
+        timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json() \
+        ["data"]["total_volume"]
+    pd_global_data_df_total_volume = pd.DataFrame(
+        data=global_data_json_total_volume,
+        index=["total_volume"])
+    # pd_global_data_df_total_volume.to_csv("total_volume.csv")
+    df_stack.append(pd_global_data_df_total_volume)
 
-            # Concaténer les différents DataFrame en un seul au format CSV.
-            df_concat = pd.concat(df_stack)
-            # df_concat.to_csv("all_data.csv")
-            # df_concat.to_html("all_data.html")
 
-            for ext in extension:
-                if ext == "csv":
-                    df_concat.to_csv(f"{name}.{ext}")
+    # market_cap_percentage
+    global_data_json_market_cap_percentage = requests.get(
+        GLOBAL_DATA,
+        timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json() \
+        ["data"]["market_cap_percentage"]
+    pd_global_data_df_market_cap_percentage = pd.DataFrame(
+        data=global_data_json_market_cap_percentage,
+        index=["market_cap_percentage"])
+    # pd_global_data_df_market_cap_percentage.to_csv("market_cap_percentage.csv")
+    df_stack.append(pd_global_data_df_market_cap_percentage)
 
-                elif ext == "html":
-                    df_concat.to_html(f"{name}.{ext}")
+    # Concaténer les différents DataFrame en un seul au format CSV.
+    df_concat = pd.concat(df_stack)
 
-                elif ext == "json":
-                    with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
-                        json_file.write(str(raw_global_data_json_data))
+    for ext in extension:
+        if ext == "csv":
+            df_concat.to_csv(f"{name}.{ext}")
 
-            return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
+        elif ext == "html":
+            df_concat.to_html(f"{name}.{ext}")
 
-        case "defi":
-            global_data_json = requests.get(
-                GLOBAL_DATA_DEFI,
-                timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
-            pd_global_data_df = pd.DataFrame(data=global_data_json, columns=["data"])
+        elif ext == "json":
+            with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
+                json_file.write(str(raw_global_data_json_data))
 
-            for ext in extension:
-                if ext == "csv":
-                    pd_global_data_df.to_csv(f"{name}.{ext}", header=False)
+    return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
-                elif ext == "html":
-                    pd_global_data_df.to_html(f"{name}.{ext}", header=False)
 
-                elif ext == "json":
-                    with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
-                        json_file.write(str(global_data_json))
+def global_defi_market(
+    extension: list,
+    name: str = "global_defi"
+    ):
+    """
+    Création de la fonction pour la génération des fichiers "global"
+    :param extension: Gestion des extensions du fichier de donner,
+    les deux principales sont CSV, HTML.
+    :param name: Nom du fichier de donner, par défaut "global"
+    """
 
-            return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
+    global_data_json = requests.get(
+    GLOBAL_DATA_DEFI,
+    timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
+    pd_global_data_df = pd.DataFrame(data=global_data_json, columns=["data"])
 
-        case _:
-            return print(f"Error <{type_data}> is not a valid argument.")
+    for ext in extension:
+        if ext == "csv":
+            pd_global_data_df.to_csv(f"{name}.{ext}", header=False)
+
+        elif ext == "html":
+            pd_global_data_df.to_html(f"{name}.{ext}", header=False)
+
+        elif ext == "json":
+            with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
+                json_file.write(str(global_data_json))
+
+    return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
 
 # Personnalisation de la progress bar.
@@ -380,12 +381,12 @@ name_default = parser.add_argument_group()
 name_default.add_argument(
     "-n",
     "--name",
-    default="market",
     type=str,
     metavar="str",
-    help="""Define output file name. default 'market'."""
+    help="""Define output file name. default 'market'"""
 )
 
+# Définition de la commande --extension qui est une commande commune pour choisir l'extension du fichier de sortie, les formats possibles sont CSV, HTML, JSON
 extension_default = parser.add_argument_group()
 extension_default.add_argument(
     "-e",
@@ -518,8 +519,8 @@ args = parser.parse_args()
 if __name__ == '__main__':
     # TODO: Développer davantage le "argparse"...
     # TODO: Ajouter davantage d'option disponible de l'API coingecko...
-    # TODO: Avoir le choix de l'extension pour le fichier de sortie "json", "csv", "html" et voir pour d'autres extensions si possible.
-    # À voir pour des ajouts comme 'exchange', 'global' (voir API coingecko)
+    # TODO: Ajouter les fonctionnalités API suivantes: tickers, public_treasury, trending, exchange/tickers, exchange/list.
+    # TODO: Régler le problème de ValueError sur la commande "./pycoin -v -p2 -t5"
 
     try:
         if args.verbose:
@@ -527,27 +528,33 @@ if __name__ == '__main__':
                 check_api(visibility="verbose")
 
             elif args.page and args.currency:
-                generate(extension=["csv", "html", "json"], name=args.name, time_wait=args.time)
+                if args.name is None:
+                    generate(extension=["csv", "html", "json"], time_wait=args.time)
+                else:
+                    generate(extension=["csv", "html", "json"], name=args.name, time_wait=args.time)
 
         else:
             if args.ping:
                 check_api(visibility="standard")
 
             elif args.page and args.currency:
-                generate(extension=[args.extension], name=args.name, time_wait=args.time)
+                if args.name is None:
+                    generate(extension=[args.extension], time_wait=args.time)
+                else:
+                    generate(extension=[args.extension], name=args.name, time_wait=args.time)
 
 
             elif args.global_data:
-                if args.name == "market":
-                    global_data_market(extension=[args.extension], name="global_data", type_data="default")
+                if args.name is None:
+                    global_data_market(extension=[args.extension])
                 else:
-                    global_data_market(extension=[args.extension], name=args.name, type_data="default")
+                    global_data_market(extension=[args.extension], name=args.name)
 
             elif args.global_defi:
-                if args.name == "market":
-                    global_data_market(extension=[args.extension], name="global_defi", type_data="defi")
+                if args.name is None:
+                    global_defi_market(extension=[args.extension])
                 else:
-                    global_data_market(extension=[args.extension], name=args.name, type_data="defi")
+                    global_defi_market(extension=[args.extension], name=args.name)
 
             # CODE BLOCK - SI UTILISATION D'UN SUBPARSER...
             # elif args.global_cmd == "global":
