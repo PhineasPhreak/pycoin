@@ -51,7 +51,6 @@ def tmp_action():
     tmp_second = "{:,.2f}secs".format(tmp_execution)
     reponse = {"tmp_second": tmp_second, "tmp_execution": tmp_execution}
 
-    # return tmp_second, tmp_execution
     return reponse
 
 
@@ -63,15 +62,19 @@ def check_api(visibility: str = "standard"):
     """
 
     try:
-        answer_ping_raw = requests.get(API_PING).json()
-        answer_ping = requests.get(API_PING).status_code
+        requests_ping = requests.get(API_PING)
+        answer_ping_json = requests_ping.json()
+        answer_ping_headers = requests_ping.headers
+        answer_ping_status = requests_ping.status_code
 
         if visibility == "standard":
-            return print(f"Status Server : {answer_ping} in {tmp_action()['tmp_second']}")
+            return print(f"Status Server : {answer_ping_status} "
+                         f"in {tmp_action()['tmp_second']}")
         elif visibility == "verbose":
             return print(
-                f"Reply Gecko : {answer_ping_raw['gecko_says']} "
-                f"Status Server : {answer_ping} "
+                f"{answer_ping_headers['Date']}\n"
+                f"Reply Gecko : {answer_ping_json['gecko_says']} "
+                f"Status Server : {answer_ping_status} "
                 f"in {tmp_action()['tmp_execution']}"
             )
 
@@ -87,20 +90,18 @@ def markets(
     sparkline: bool = False
     ):
     """
-    Liste de tous les Tokens pris en charge : prix, capitalisation boursière,
-    volume et les données relatives au marché.
+    Liste de tous les Tokens pris en charge : prix, capitalisation boursière, volume et les données relatives au marché.
     Documentation de l'API de CoinGecko :
     https://www.coingecko.com/en/api/documentation
     :param vs_currencies: Définir la monnaie cible des données de marché
-    :param order: Valeurs valides : (market_cap_asc, market_cap_desc,
-    volume_asc, volume_desc, id_asc, id_desc) trier les résultats par champ.
+    :param order: Valeurs valides : (market_cap_asc, market_cap_desc, volume_asc, volume_desc, id_asc, id_desc) trier les résultats par champ.
     :param per_page: Valeurs valables : 1[...]250 Total des résultats par page
     :param page: Parcourir les nombres de page demandé
     :param sparkline: Inclure les données du sparkline des 7 derniers jours
     :return: Retourne un tableau (DataFrame)
     """
 
-    cg_markets = (
+    cg_market = (
         f"https://api.coingecko.com/api/v3/coins/"
         f"markets?vs_currency={vs_currencies}&"
         f"order={order}&"
@@ -111,7 +112,7 @@ def markets(
 
     # La conversion du format brute JSON en DataFrame avec pandas
     # pd_markets = pd.read_json(
-    #     cg_markets,
+    #     cg_market,
     #     orient="records",
     #     encoding="utf-8",
     #     dtype="objet"
@@ -123,15 +124,12 @@ def markets(
     # Read docs :
     # https://requests.readthedocs.io/en/stable/user/advanced/#timeouts
     try:
-        pd_markets = requests.get(
-            cg_markets,
-            timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
+        request_market = requests.get(cg_market, timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT))
+        market_json = request_market.json()
 
         # Capture du status code 429 (TooManyRequests)
         # Trop d'erreurs 429, cela rend le programme inutilisable, à voir sur le long terme si des problèmes de manque de donner.
-        # status_code = requests.get(
-        #     cg_markets,
-        #     timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).status_code
+        # status_code = request_market.status_code
         # if status_code == 429:
         #     print("HTTPS Error 429: Too Many Requests")
         #     exit(1)
@@ -147,7 +145,7 @@ def markets(
     # https://www.delftstack.com/howto/python-pandas/
     # https://stackoverflow.com/questions/13411544/delete-a-column-from-a-pandas-dataframe
     dt_markets = pd.DataFrame(
-        data=pd_markets,
+        data=market_json,
         columns=[
             "id",
             "symbol",
@@ -171,7 +169,7 @@ def markets(
     )
 
     # Définit la colonne 'market_cap_rank' comme index du DataFrame
-    # pd_markets_df_rank = pd_markets.set_index("market_cap_rank")
+    # pd_markets_df_rank = market_json.set_index("market_cap_rank")
 
     # Trie la colonne "market_cap_rank dans l'ordre croissant
     pd_markets_df_sort_rank = dt_markets.sort_values("market_cap_rank")
@@ -191,13 +189,13 @@ def generate(
     ):
     """
     Création de la fonction pour la génération des fichiers...
-    :param extension: Gestion des extensions du fichier de donner,
-    les deux principales sont CSV, HTML.
+    :param extension: Gestion des extensions du fichier de donner, les deux principales sont CSV, HTML.
     :param name: Nom du fichier de donner, par défaut "market"
     :param pd_index: Détermine si l'index du tableau doit être présent ou pas
     :param time_wait: Définition du temps d'attente en seconde entre chaque requête
-    :return: Les résultats des différents fichiers CSV ou HTML ou les erreurs.
+    :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
     """
+
     dfs = []
     with progress:
         try:
@@ -245,9 +243,9 @@ def global_data_market(
     ):
     """
     Création de la fonction pour la génération du fichier "global"
-    :param extension: Gestion des extensions du fichier de donner,
-    les deux principales sont CSV, HTML et JSON.
+    :param extension: Gestion des extensions du fichier de donner, les deux principales sont CSV, HTML et JSON.
     :param name: Nom du fichier de donner, par défaut "global"
+    :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
     """
 
     df_stack = []
@@ -337,6 +335,7 @@ def global_defi_market(
     :param extension: Gestion des extensions du fichier de donner,
     les deux principales sont CSV, HTML et JSON.
     :param name: Nom du fichier de donner, par défaut "global_defi"
+    :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
     """
 
     global_data_json = requests.get(
@@ -367,7 +366,9 @@ def trending_top7(
     :param extension: Gestion des extensions du fichier de donner,
     les deux principales sont CSV, HTML et JSON.
     :param name: Nom du fichier de donner, par défaut "trending_top7"
+    :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
     """
+
     dfs = []
 
     raw_trending_data = requests.get(
@@ -572,7 +573,7 @@ if __name__ == '__main__':
 
         else:
             if args.ping:
-                check_api(visibility="standard")
+                check_api()
 
             elif args.page and args.currency:
                 if args.name is None:
