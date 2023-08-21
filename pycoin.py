@@ -17,6 +17,14 @@ from rich.progress import Progress, BarColumn, TextColumn, DownloadColumn
 # RuntimeWarning: invalid value encountered in cast values = values.astype(str)
 # warnings.filterwarnings("ignore")
 
+### OPTION PANDAS
+# Affiche le DataFrame pandas dans le terminal avec les options ci-dessous:
+# pd.options.display.max_rows = None
+# pd.options.display.max_columns = None
+# pd.options.display.max_colwidth = None
+# pd.options.display.width = 1000
+# pd.options.display.float_format = '{:,.2f}'.format
+# pd.options.display.precision = 2
 
 # Liste des Requêtes URL avec aucune modification (Statique)
 API_URL_BASE = "https://api.coingecko.com/api/v3/"
@@ -24,6 +32,7 @@ API_URL_BASE = "https://api.coingecko.com/api/v3/"
 API_PING = f"{API_URL_BASE}ping"
 GLOBAL_DATA = f"{API_URL_BASE}global"
 GLOBAL_DATA_DEFI = f"{API_URL_BASE}global/decentralized_finance_defi"
+TRENDING_TOP7 = f"{API_URL_BASE}search/trending"
 
 # Variables pour les erreurs de "timeout" pour les requêtes
 # INFO:
@@ -33,7 +42,7 @@ REQ_CONNECT_TIMEOUT = 25
 REQ_READ_TIMEOUT = 100
 
 # Variable static pour la version de Pycoin
-PYCOIN_VERSION = "1.3.0"
+PYCOIN_VERSION = "1.4.0"
 
 
 def tmp_action():
@@ -235,20 +244,11 @@ def global_data_market(
     name: str = "global"
     ):
     """
-    Création de la fonction pour la génération des fichiers "global"
+    Création de la fonction pour la génération du fichier "global"
     :param extension: Gestion des extensions du fichier de donner,
-    les deux principales sont CSV, HTML.
+    les deux principales sont CSV, HTML et JSON.
     :param name: Nom du fichier de donner, par défaut "global"
     """
-
-    # Affiche le DataFrame pandas dans le terminal avec les options ci-dessous
-    # pas utile si pas d'affichage dans le terminal.
-    # pd.options.display.max_rows = None
-    # pd.options.display.max_columns = None
-    # pd.options.display.max_colwidth = None
-    # pd.options.display.width = 1000
-    # pd.options.display.float_format = '{:,.2f}'.format
-    # pd.options.display.precision = 2
 
     df_stack = []
 
@@ -333,10 +333,10 @@ def global_defi_market(
     name: str = "global_defi"
     ):
     """
-    Création de la fonction pour la génération des fichiers "global"
+    Création de la fonction pour la génération du fichier "global_defi"
     :param extension: Gestion des extensions du fichier de donner,
-    les deux principales sont CSV, HTML.
-    :param name: Nom du fichier de donner, par défaut "global"
+    les deux principales sont CSV, HTML et JSON.
+    :param name: Nom du fichier de donner, par défaut "global_defi"
     """
 
     global_data_json = requests.get(
@@ -358,6 +358,43 @@ def global_defi_market(
     return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
 
+def trending_top7(
+        extension: list,
+        name: str = "trending-top7"
+):
+    """
+    Création de la fonction pour la génération du fichier "trending-top7"
+    :param extension: Gestion des extensions du fichier de donner,
+    les deux principales sont CSV, HTML et JSON.
+    :param name: Nom du fichier de donner, par défaut "trending-top7"
+    """
+    dfs = []
+
+    raw_trending_data = requests.get(
+    TRENDING_TOP7,
+    timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
+
+    for top_trending in range(0, len(raw_trending_data["coins"])):
+        trending_data = raw_trending_data["coins"][top_trending]
+        pd_trending_data = pd.DataFrame(data=trending_data)
+        dfs.append(pd_trending_data)
+
+    df_concat = pd.concat(dfs)
+
+    for ext in extension:
+        if ext == "csv":
+            df_concat.to_csv(f"{name}.{ext}", header=False)
+
+        elif ext == "html":
+            df_concat.to_html(f"{name}.{ext}", header=False)
+
+        elif ext == "json":
+            with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
+                json_file.write(str(raw_trending_data))
+
+    return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
+
+
 # Personnalisation de la progress bar.
 progress = Progress(
     TextColumn(text_format="Downloading..."),
@@ -368,9 +405,10 @@ progress = Progress(
 )
 
 parser = argparse.ArgumentParser(
-    formatter_class=argparse.RawTextHelpFormatter,
-    description="""Use of the CoinGecko API by generating a *.csv file (or html with verbose option),
-with the non-exhaustive list of Cryptocurrency.""",
+    # Conserve le formatage de tous les textes d'aide.
+    # formatter_class=argparse.RawTextHelpFormatter,
+    description="""Use of the CoinGecko API by generating a CSV, HTML AND JSON file,
+    with the non-exhaustive list of Cryptocurrency.""",
     epilog="""Pycoin home page: <https://github.com/PhineasPhreak/pycoin>"""
 )
 
@@ -418,7 +456,7 @@ market_data.add_argument(
     type=int,
     metavar="int",
     help="""Customization of the number of pages to generate in the *.csv,
-do not exceed 15 for the page generation value"""
+    do not exceed 15 for the page generation value"""
 )
 
 # La commande 'time' permet de préciser le temps d'attente en seconde entre les requêtes
@@ -429,17 +467,8 @@ market_data.add_argument(
     type=int,
     metavar="int",
     help="""Define waiting time in seconds between each request,
-Avoid values below 5 seconds (default is 25 seconds)"""
+    Avoid values below 5 seconds (default is 25 seconds)"""
 )
-
-# market_data.add_argument(
-#     "-n",
-#     "--name",
-#     default="market",
-#     type=str,
-#     metavar="str",
-#     help="""Define output file name. default 'market'."""
-# )
 
 # Définition de la commande --currency pour choisir le type de
 # devise que nous voulons, USD étant la devise par défaut.
@@ -450,7 +479,7 @@ market_data.add_argument(
     type=str,
     metavar="str",
     help="""Choose the type of currency we want,
-USD being the default currency. Choice: usd, eur, cad, gbp, etc"""
+    USD being the default currency. Choice: usd, eur, cad, gbp, etc"""
 )
 
 # CODE BLOCK - SI UTILISATION D'UN SUBPARSER...
@@ -489,8 +518,16 @@ global_data.add_argument(
     "-G",
     "--global_defi",
     action="store_true",
-    dest="global_defi",
     help="""Get Top 100 Cryptocurrency Global Eecentralized Finance(defi) data"""
+)
+
+# Génération des tendances de coingecko les dernières 24h
+trending_data = parser.add_argument_group("Top-7 trending coins on CoinGecko")
+trending_data.add_argument(
+    "-T",
+    "--trending",
+    action="store_true",
+    help="""Top-7 trending coins on CoinGecko as searched by users in the last 24 hours (Ordered by most popular first)."""
 )
 
 # Affiche la version du programme
@@ -519,7 +556,7 @@ args = parser.parse_args()
 if __name__ == '__main__':
     # TODO: Développer davantage le "argparse"...
     # TODO: Ajouter davantage d'option disponible de l'API coingecko...
-    # TODO: Ajouter les fonctionnalités API suivantes: tickers, public_treasury, trending, exchange/tickers, exchange/list.
+    # TODO: Ajouter les fonctionnalités API suivantes: tickers, public_treasury, exchange/tickers, exchange/list.
     # TODO: Régler le problème de ValueError sur la commande "./pycoin -v -p2 -t5"
 
     try:
@@ -543,7 +580,6 @@ if __name__ == '__main__':
                 else:
                     generate(extension=[args.extension], name=args.name, time_wait=args.time)
 
-
             elif args.global_data:
                 if args.name is None:
                     global_data_market(extension=[args.extension])
@@ -555,6 +591,12 @@ if __name__ == '__main__':
                     global_defi_market(extension=[args.extension])
                 else:
                     global_defi_market(extension=[args.extension], name=args.name)
+
+            elif args.trending:
+                if args.name is None:
+                    trending_top7(extension=[args.extension])
+                else:
+                    trending_top7(extension=[args.extension], name=args.name)
 
             # CODE BLOCK - SI UTILISATION D'UN SUBPARSER...
             # elif args.global_cmd == "global":
