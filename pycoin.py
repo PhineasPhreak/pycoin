@@ -360,13 +360,13 @@ def global_defi_market(
 
 def trending_top7(
         extension: list,
-        name: str = "trending-top7"
+        name: str = "trending_top7"
 ):
     """
-    Création de la fonction pour la génération du fichier "trending-top7"
+    Création de la fonction pour la génération du fichier "trending_top7"
     :param extension: Gestion des extensions du fichier de donner,
     les deux principales sont CSV, HTML et JSON.
-    :param name: Nom du fichier de donner, par défaut "trending-top7"
+    :param name: Nom du fichier de donner, par défaut "trending_top7"
     """
     dfs = []
 
