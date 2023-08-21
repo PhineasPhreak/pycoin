@@ -23,5 +23,9 @@ global_defi.csv
 global_defi.html
 global_defi.json
 
+trending_top7.csv
+trending_top7.html
+trending_top7.json
+
 ### MISC ###
 nohup.out
