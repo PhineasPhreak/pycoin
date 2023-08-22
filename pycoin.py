@@ -42,7 +42,7 @@ REQ_CONNECT_TIMEOUT = 25
 REQ_READ_TIMEOUT = 100
 
 # Variable static pour la version de Pycoin
-PYCOIN_VERSION = "1.4.1"
+PYCOIN_VERSION = "1.5.1"
 
 
 def tmp_action():
@@ -102,7 +102,7 @@ def markets(
     """
 
     cg_market = (
-        f"https://api.coingecko.com/api/v3/coins/"
+        f"{API_URL_BASE}coins/"
         f"markets?vs_currency={vs_currencies}&"
         f"order={order}&"
         f"per_page={per_page}&"
@@ -183,14 +183,14 @@ def markets(
 
 def generate(
         extension: list,
-        name: str = "market",
+        name: str = "markets",
         pd_index: bool = False,
         time_wait: int = 25
 ):
     """
     Création de la fonction pour la génération des fichiers...
-    :param extension: Gestion des extensions du fichier de donner, les deux principales sont CSV, HTML.
-    :param name: Nom du fichier de donner, par défaut "market"
+    :param extension: Gestion des extensions du fichier de donner, les possibilités sont sont CSV, HTML et JSON.
+    :param name: Nom du fichier de donner, par défaut "markets"
     :param pd_index: Détermine si l'index du tableau doit être présent ou pas
     :param time_wait: Définition du temps d'attente en seconde entre chaque requête
     :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
@@ -235,6 +235,63 @@ def generate(
 
         except urllib.error.URLError as URLError:
             return print(URLError.reason)
+
+
+def exchanges(
+        extension: str,
+        name: str = "exchanges",
+        per_page: int = 250,
+        page: int = 1
+):
+    """
+    :param extension: Gestion des extensions du fichier de donner, les possibilités sont sont CSV, HTML et JSON.
+    :param name: Nom du fichier de donner, par défaut "exchanges"
+    :param per_page: Valeurs valables : 1[...]250 Total des résultats par page
+    :param page: Parcourir les nombres de page demandé, ici seulement une
+    :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
+    """
+    cg_exchanges = (
+        f"{API_URL_BASE}exchanges"
+        f"?per_page={per_page}&"
+        f"page={page}"
+    )
+
+    try:
+        requests_exchanges = requests.get(cg_exchanges, timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT))
+        exchanges_json = requests_exchanges.json()
+
+    except requests.ConnectTimeout as error_connect_timeout:
+        print("Connect Time Error {0}", error_connect_timeout)
+
+    except requests.ReadTimeout as error_read_timeout:
+        print("Read Time Error {0}", error_read_timeout)
+
+    dt_exchanges = pd.DataFrame(
+        data=exchanges_json,
+        columns=[
+            "id",
+            "name",
+            "year_established",
+            "country",
+            "has_trading_incentive",
+            "trust_score",
+            "trust_score_rank",
+            "trade_volume_24h_btc",
+            "trade_volume_24h_btc_normalized"
+        ]
+    )
+
+    for ext in extension:
+        if ext == "csv":
+            dt_exchanges.to_csv(f"{name}.{ext}")
+
+        elif ext == "html":
+            dt_exchanges.to_html(f"{name}.{ext}")
+
+        elif ext == "json":
+            dt_exchanges.to_json(f"{name}.{ext}", orient="columns")
+
+    return print(f"Successful creation of {name}.{extension} files")
 
 
 def global_data_market(
@@ -409,16 +466,14 @@ parser = argparse.ArgumentParser(
     epilog="""Pycoin home page: <https://github.com/PhineasPhreak/pycoin>"""
 )
 
-# Définition de la commande --name qui est une commande commune pour choisir le nom de fichier
-# de sortie que vous souhaitez, mais attention pas son extension.
-# La valeur par défaut comme nom de fichier est "market".
+# Définition de la commande --name qui est une commande commune pour choisir le nom de fichier de sortie que vous souhaitez, mais attention pas son extension. La valeur par défaut comme nom de fichier est "markets".
 name_default = parser.add_argument_group()
 name_default.add_argument(
     "-n",
     "--name",
     type=str,
     metavar="str",
-    help="""Define output file name. default 'market'"""
+    help="""Define output file name. default 'markets'"""
 )
 
 # Définition de la commande --extension qui est une commande commune pour choisir l'extension du fichier de sortie, les formats possibles sont CSV, HTML, JSON
@@ -443,14 +498,12 @@ ping.add_argument(
     help="check API server status"
 )
 
-# Définition de la commande --page pour personnaliser le nombre de pages dans
-# le fichier data.csv final. Nombre de pages par défaut 10.
-market_data = parser.add_argument_group("Options market")
+# Définition de la commande --page pour personnaliser le nombre de pages dans le fichier final. Nombre de pages par défaut 10.
+market_data = parser.add_argument_group("Options Markets")
 market_data.add_argument(
     "-p",
     "--page",
-    # Si cette option <default=5> et de commenter le fichier python lancera automatiquement
-    # la génération d'un fichier CSV avec 5 page, même sans argument donner au fichier python.
+    # Si cette option <default=5> et de commenter le fichier python lancera automatiquement la génération d'un fichier CSV avec 5 page, même sans argument donner au fichier python.
     # default=5,
     type=int,
     metavar="int",
@@ -469,8 +522,7 @@ market_data.add_argument(
     Avoid values below 5 seconds (default is 25 seconds)"""
 )
 
-# Définition de la commande --currency pour choisir le type de
-# devise que nous voulons, USD étant la devise par défaut.
+# Définition de la commande --currency pour choisir le type de devise que nous voulons, USD étant la devise par défaut.
 market_data.add_argument(
     "-c",
     "--currency",
@@ -479,6 +531,15 @@ market_data.add_argument(
     metavar="str",
     help="""Choose the type of currency we want,
     USD being the default currency. Choice: usd, eur, cad, gbp, etc"""
+)
+
+# Définition de la commande --exchanges pour lister tous les exchanges actif
+exchanges_data = parser.add_argument_group("Options Exchanges")
+exchanges_data.add_argument(
+    "-E",
+    "--exchanges",
+    action="store_true",
+    help="""List all exchanges (Active with trading volumes)"""
 )
 
 # CODE BLOCK - SI UTILISATION D'UN SUBPARSER...
@@ -521,7 +582,7 @@ global_data.add_argument(
 )
 
 # Génération des tendances de coingecko les dernières 24h
-trending_data = parser.add_argument_group("Top-7 trending coins on CoinGecko")
+trending_data = parser.add_argument_group("Top-7 trending coins")
 trending_data.add_argument(
     "-T",
     "--trending",
@@ -537,8 +598,7 @@ parser.add_argument(
     version=f"%(prog)s version {PYCOIN_VERSION}"
 )
 
-# Groupe pour verbose ou quiet, groupe mutuellement exclusif
-# soit verbose ou quiet, mais pas les deux.
+# Groupe pour verbose ou quiet, groupe mutuellement exclusif soit verbose ou quiet, mais pas les deux.
 output = parser.add_mutually_exclusive_group()
 
 # output.add_argument('-q', '--quiet', action='store_true', help='print quiet')
@@ -564,27 +624,39 @@ if __name__ == '__main__':
                 check_api(visibility="verbose")
 
         else:
+            # API: /ping
             if args.ping:
                 check_api()
 
+            # API: /coins/markets
             elif args.page and args.currency:
                 if args.name is None:
                     generate(extension=args.extension, time_wait=args.time)
                 else:
                     generate(extension=args.extension, name=args.name, time_wait=args.time)
 
+            # API: /exchanges
+            elif args.exchanges:
+                if args.name is None:
+                    exchanges(extension=args.extension)
+                else:
+                    exchanges(extension=args.extension, name=args.name)
+
+            # API: /global
             elif args.global_data:
                 if args.name is None:
                     global_data_market(extension=args.extension)
                 else:
                     global_data_market(extension=args.extension, name=args.name)
 
+            # APi: /global/decentralized_finance_defi
             elif args.global_defi:
                 if args.name is None:
                     global_defi_market(extension=args.extension)
                 else:
                     global_defi_market(extension=args.extension, name=args.name)
 
+            # APi: /search/trending
             elif args.trending:
                 if args.name is None:
                     trending_top7(extension=args.extension)
