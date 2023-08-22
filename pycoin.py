@@ -17,7 +17,7 @@ from rich.progress import Progress, BarColumn, TextColumn, DownloadColumn
 # RuntimeWarning: invalid value encountered in cast values = values.astype(str)
 # warnings.filterwarnings("ignore")
 
-### OPTION PANDAS
+# *** OPTION PANDAS ***
 # Affiche le DataFrame pandas dans le terminal avec les options ci-dessous:
 # pd.options.display.max_rows = None
 # pd.options.display.max_columns = None
@@ -42,7 +42,7 @@ REQ_CONNECT_TIMEOUT = 25
 REQ_READ_TIMEOUT = 100
 
 # Variable static pour la version de Pycoin
-PYCOIN_VERSION = "1.4.0"
+PYCOIN_VERSION = "1.4.1"
 
 
 def tmp_action():
@@ -83,12 +83,12 @@ def check_api(visibility: str = "standard"):
 
 
 def markets(
-    vs_currencies: str = "usd",
-    order: str = "market_cap_desc",
-    per_page: int = 250,
-    page: int = 1,
-    sparkline: bool = False
-    ):
+        vs_currencies: str = "usd",
+        order: str = "market_cap_desc",
+        per_page: int = 250,
+        page: int = 1,
+        sparkline: bool = False
+):
     """
     Liste de tous les Tokens pris en charge : prix, capitalisation boursière, volume et les données relatives au marché.
     Documentation de l'API de CoinGecko :
@@ -182,11 +182,11 @@ def markets(
 
 
 def generate(
-    extension: list,
-    name: str = "market",
-    pd_index: bool = False,
-    time_wait: int = 25
-    ):
+        extension: list,
+        name: str = "market",
+        pd_index: bool = False,
+        time_wait: int = 25
+):
     """
     Création de la fonction pour la génération des fichiers...
     :param extension: Gestion des extensions du fichier de donner, les deux principales sont CSV, HTML.
@@ -238,9 +238,9 @@ def generate(
 
 
 def global_data_market(
-    extension: list,
-    name: str = "global"
-    ):
+        extension: list,
+        name: str = "global"
+):
     """
     Création de la fonction pour la génération du fichier "global"
     :param extension: Gestion des extensions du fichier de donner, les deux principales sont CSV, HTML et JSON.
@@ -327,21 +327,19 @@ def global_data_market(
 
 
 def global_defi_market(
-    extension: list,
-    name: str = "global_defi"
-    ):
+        extension: list,
+        name: str = "global_defi"
+):
     """
     Création de la fonction pour la génération du fichier "global_defi"
-    :param extension: Gestion des extensions du fichier de donner,
-    les deux principales sont CSV, HTML et JSON.
+    :param extension: Gestion des extensions du fichier de donner, les deux principales sont CSV, HTML et JSON.
     :param name: Nom du fichier de donner, par défaut "global_defi"
     :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
     """
 
-    global_data_json = requests.get(
-    GLOBAL_DATA_DEFI,
-    timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
-    pd_global_data_df = pd.DataFrame(data=global_data_json, columns=["data"])
+    requests_global_defi = requests.get(GLOBAL_DATA_DEFI, timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT))
+    global_defi_json = requests_global_defi.json()
+    pd_global_data_df = pd.DataFrame(data=global_defi_json, columns=["data"])
 
     for ext in extension:
         if ext == "csv":
@@ -352,7 +350,7 @@ def global_defi_market(
 
         elif ext == "json":
             with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
-                json_file.write(str(global_data_json))
+                json_file.write(str(global_defi_json))
 
     return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
@@ -363,20 +361,18 @@ def trending_top7(
 ):
     """
     Création de la fonction pour la génération du fichier "trending_top7"
-    :param extension: Gestion des extensions du fichier de donner,
-    les deux principales sont CSV, HTML et JSON.
+    :param extension: Gestion des extensions du fichier de donner, les deux principales sont CSV, HTML et JSON.
     :param name: Nom du fichier de donner, par défaut "trending_top7"
     :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
     """
 
     dfs = []
 
-    raw_trending_data = requests.get(
-    TRENDING_TOP7,
-    timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT)).json()
+    request_trending = requests.get(TRENDING_TOP7, timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT))
+    trending_data_json = request_trending.json()
 
-    for top_trending in range(0, len(raw_trending_data["coins"])):
-        trending_data = raw_trending_data["coins"][top_trending]
+    for top_trending in range(0, len(trending_data_json["coins"])):
+        trending_data = trending_data_json["coins"][top_trending]
         pd_trending_data = pd.DataFrame(data=trending_data)
         dfs.append(pd_trending_data)
 
@@ -391,7 +387,7 @@ def trending_top7(
 
         elif ext == "json":
             with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
-                json_file.write(str(raw_trending_data))
+                json_file.write(str(trending_data_json))
 
     return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
@@ -426,12 +422,14 @@ name_default.add_argument(
 )
 
 # Définition de la commande --extension qui est une commande commune pour choisir l'extension du fichier de sortie, les formats possibles sont CSV, HTML, JSON
+# nargs="+": Tous les arguments présents sur la ligne de commande sont capturés dans une liste. De plus, un message d'erreur est produit s'il n'y a pas au moins un argument présent sur la ligne de commande.
 extension_default = parser.add_argument_group()
 extension_default.add_argument(
     "-e",
     "--extension",
-    default="csv",
+    default=["csv"],
     choices=["csv", "html", "json"],
+    nargs="+",
     metavar="str",
     help="""Selects CSV, HTML and JSON output file extensions"""
 )
@@ -565,39 +563,33 @@ if __name__ == '__main__':
             if args.ping:
                 check_api(visibility="verbose")
 
-            elif args.page and args.currency:
-                if args.name is None:
-                    generate(extension=["csv", "html", "json"], time_wait=args.time)
-                else:
-                    generate(extension=["csv", "html", "json"], name=args.name, time_wait=args.time)
-
         else:
             if args.ping:
                 check_api()
 
             elif args.page and args.currency:
                 if args.name is None:
-                    generate(extension=[args.extension], time_wait=args.time)
+                    generate(extension=args.extension, time_wait=args.time)
                 else:
-                    generate(extension=[args.extension], name=args.name, time_wait=args.time)
+                    generate(extension=args.extension, name=args.name, time_wait=args.time)
 
             elif args.global_data:
                 if args.name is None:
-                    global_data_market(extension=[args.extension])
+                    global_data_market(extension=args.extension)
                 else:
-                    global_data_market(extension=[args.extension], name=args.name)
+                    global_data_market(extension=args.extension, name=args.name)
 
             elif args.global_defi:
                 if args.name is None:
-                    global_defi_market(extension=[args.extension])
+                    global_defi_market(extension=args.extension)
                 else:
-                    global_defi_market(extension=[args.extension], name=args.name)
+                    global_defi_market(extension=args.extension, name=args.name)
 
             elif args.trending:
                 if args.name is None:
-                    trending_top7(extension=[args.extension])
+                    trending_top7(extension=args.extension)
                 else:
-                    trending_top7(extension=[args.extension], name=args.name)
+                    trending_top7(extension=args.extension, name=args.name)
 
             # CODE BLOCK - SI UTILISATION D'UN SUBPARSER...
             # elif args.global_cmd == "global":
