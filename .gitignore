@@ -11,9 +11,9 @@ build/
 dist/
 
 ### DATA ###
-market.csv
-market.html
-market.json
+markets.csv
+markets.html
+markets.json
 
 global.csv
 global.html
@@ -26,6 +26,10 @@ global_defi.json
 trending_top7.csv
 trending_top7.html
 trending_top7.json
+
+exchanges.csv
+exchanges.html
+exchanges.json
 
 ### MISC ###
 nohup.out
