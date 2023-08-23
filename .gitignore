@@ -31,5 +31,9 @@ exchanges.csv
 exchanges.html
 exchanges.json
 
+coins_list.csv
+coins_list.html
+coins_list.json
+
 ### MISC ###
 nohup.out

@@ -82,6 +82,40 @@ def check_api(visibility: str = "standard"):
         return f"Failed to establish a connection\n\n" f"{req_error.args}"
 
 
+def coins_list(
+        extension: list,
+        name: str = "coins_list",
+        include_platform: bool = False
+):
+    """
+    Liste de toutes les cryptos prises en charge (id, name et symbol)
+    :param: include_platform: pour inclure les adresses des contrats de plateforme (par exemple, 0x.... pour les jetons basés sur Ethereum).
+    :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
+    """
+
+    cg_coins_list = (
+        f"{API_URL_BASE}coins/"
+        f"list?include_platform={include_platform}"
+    )
+
+    requests_coins_list = requests.get(cg_coins_list, timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT))
+    coins_list_json = requests_coins_list.json()
+    pd_coins_list_df = pd.DataFrame(data=coins_list_json)
+
+    for ext in extension:
+        if ext == "csv":
+            pd_coins_list_df.to_csv(f"{name}.{ext}", header=False)
+
+        elif ext == "html":
+            pd_coins_list_df.to_html(f"{name}.{ext}", header=False)
+
+        elif ext == "json":
+            with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
+                json_file.write(str(coins_list_json))
+
+    return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
+
+
 def markets(
         vs_currencies: str = "usd",
         order: str = "market_cap_desc",
@@ -291,7 +325,7 @@ def exchanges(
         elif ext == "json":
             dt_exchanges.to_json(f"{name}.{ext}", orient="columns")
 
-    return print(f"Successful creation of {name}.{extension} files")
+    return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
 
 def global_data_market(
@@ -306,7 +340,6 @@ def global_data_market(
     """
 
     df_stack = []
-
     # Raw date for JSON file
     raw_global_data_json_data = requests.get(
         GLOBAL_DATA,
@@ -424,7 +457,6 @@ def trending_top7(
     """
 
     dfs = []
-
     request_trending = requests.get(TRENDING_TOP7, timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT))
     trending_data_json = request_trending.json()
 
@@ -459,8 +491,13 @@ progress = Progress(
 )
 
 parser = argparse.ArgumentParser(
-    # Conserve le formatage de tous les textes d'aide.
+    # Maintient un espace blanc pour toutes sortes de textes d'aide
+    # https://docs.python.org/3/library/argparse.html#argparse.RawTextHelpFormatter
     # formatter_class=argparse.RawTextHelpFormatter,
+
+    # Indique que la description et l'épilogue sont déjà correctement formatés et ne doivent pas être entourés de lignes
+    # https://docs.python.org/3/library/argparse.html#argparse.RawDescriptionHelpFormatter
+    # formatter_class=argparse.RawDescriptionHelpFormatter,
     description="""Use of the CoinGecko API by generating a CSV, HTML AND JSON file,
     with the non-exhaustive list of Cryptocurrency.""",
     epilog="""Pycoin home page: <https://github.com/PhineasPhreak/pycoin>"""
@@ -496,6 +533,17 @@ ping.add_argument(
     "--ping",
     action="store_true",
     help="check API server status"
+)
+
+# Définition de la commande --coins_list pour afficher la liste des cryptos
+coins_list_arg = parser.add_argument_group("Coins List")
+coins_list_arg.add_argument(
+    "-C",
+    "--coins_list",
+    action="store_true",
+    help="""List all coins with id, name, and symbol.
+    All the coins that show up on this /coins/list endpoint are Active coins that listed by CoinGecko team on CoinGecko.com.
+    If a coin is inactive or deactivated, it will be removed from /coins/list"""
 )
 
 # Définition de la commande --page pour personnaliser le nombre de pages dans le fichier final. Nombre de pages par défaut 10.
@@ -615,8 +663,7 @@ args = parser.parse_args()
 if __name__ == '__main__':
     # TODO: Développer davantage le "argparse"...
     # TODO: Ajouter davantage d'option disponible de l'API coingecko...
-    # TODO: Ajouter les fonctionnalités API suivantes: tickers, public_treasury, exchange/tickers, exchange/list.
-    # TODO: Régler le problème de ValueError sur la commande "./pycoin -v -p2 -t5"
+    # TODO: Ajouter les fonctionnalités API suivantes: tickers, public_treasury, exchange/tickers.
 
     try:
         if args.verbose:
@@ -627,6 +674,13 @@ if __name__ == '__main__':
             # API: /ping
             if args.ping:
                 check_api()
+
+            # API: /coins/list
+            elif args.coins_list:
+                if args.name is None:
+                    coins_list(extension=args.extension)
+                else:
+                    coins_list(extension=args.extension, name=args.name)
 
             # API: /coins/markets
             elif args.page and args.currency:
