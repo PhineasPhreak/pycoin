@@ -43,7 +43,7 @@ REQ_CONNECT_TIMEOUT = 25
 REQ_READ_TIMEOUT = 100
 
 # Variable static pour la version de Pycoin
-PYCOIN_VERSION = "1.8.2"
+PYCOIN_VERSION = "1.8.3"
 
 
 def tmp_action():
