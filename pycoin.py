@@ -532,17 +532,17 @@ def companies(
 
     for ext in extension:
         if ext == "csv":
-            df_concat.to_csv(f"{name}.{ext}")
+            df_concat.to_csv(f"{name}.{ext}", index=False)
 
         elif ext == "html":
-            df_concat.to_html(f"{name}.{ext}")
+            df_concat.to_html(f"{name}.{ext}", index=False)
 
         elif ext == "json":
             with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
                 json_file.write(str(companies_json))
 
         elif ext == "xlsx":
-            df_concat.to_excel(f"{name}.{ext}", sheet_name="COMPANIES")
+            df_concat.to_excel(f"{name}.{ext}", sheet_name="COMPANIES", index=False)
 
     return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
