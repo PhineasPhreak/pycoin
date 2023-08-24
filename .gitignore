@@ -35,5 +35,9 @@ coins_list.csv
 coins_list.html
 coins_list.json
 
+companies.csv
+companies.html
+companies.json
+
 ### MISC ###
 nohup.out
