@@ -78,6 +78,7 @@ Used Prerequisites `pandas`, `rich`, `requests`, `openpyxl` and `pyinstaller`, `
 > pandas : [pandas pypi.org](https://pypi.org/project/pandas/) \
 > rich : [rich pypi.org](https://pypi.org/project/rich/) \
 > requests : [requests pypi.org](https://pypi.org/project/requests/) \
+> openpyxl : [openpyxl pypi.org](https://pypi.org/project/openpyxl/) \
 > pyinstaller : [pyinstaller pypi.org](https://pypi.org/project/pyinstaller/) | [pyinstaller manual](https://pyinstaller.org/en/stable/index.html) \
 > pyinstaller-versionfile : [pyinstaller-version pypi.org](https://pypi.org/project/pyinstaller-versionfile/)
 
