@@ -14,30 +14,37 @@ dist/
 markets.csv
 markets.html
 markets.json
+markets.xlsx
 
 global.csv
 global.html
 global.json
+global.xlsx
 
 global_defi.csv
 global_defi.html
 global_defi.json
+global_defi.xlsx
 
 trending_top7.csv
 trending_top7.html
 trending_top7.json
+trending_top7.xlsx
 
 exchanges.csv
 exchanges.html
 exchanges.json
+exchanges.xlsx
 
 coins_list.csv
 coins_list.html
 coins_list.json
+coins_list.xlsx
 
 companies.csv
 companies.html
 companies.json
+companies.xlsx
 
 ### MISC ###
 nohup.out

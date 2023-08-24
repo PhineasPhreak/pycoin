@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# PIP3 install : pandas, rich, requests
+# PIP3 install : pandas, rich, requests, openpyxl
+
 
 import argparse
 import time
@@ -114,6 +115,9 @@ def coins_list(
         elif ext == "json":
             with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
                 json_file.write(str(coins_list_json))
+
+        elif ext == "xlsx":
+            pd_coins_list_df.to_excel(f"{name}.{ext}", sheet_name="COINS_LIST", index=False)
 
     return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
@@ -264,6 +268,9 @@ def generate(
                 elif ext == "json":
                     df_concat.to_json(f"{name}.{ext}", orient="columns")
 
+                elif ext == "xlsx":
+                    df_concat.to_excel(f"{name}.{ext}", sheet_name="MARKETS", index=pd_index)
+
             return print(f"Successful creation of {name}.{extension} files")
 
         except urllib.error.HTTPError as HTTPError:
@@ -326,6 +333,9 @@ def exchanges(
 
         elif ext == "json":
             dt_exchanges.to_json(f"{name}.{ext}", orient="columns")
+
+        elif ext == "xlsx":
+            dt_exchanges.to_excel(f"{name}.{ext}", sheet_name="EXCHANGES", index=False)
 
     return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
@@ -415,6 +425,9 @@ def global_data_market(
             with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
                 json_file.write(str(raw_global_data_json_data))
 
+        elif ext == "xlsx":
+            df_concat.to_excel(f"{name}.{ext}", sheet_name="GLOBAL")
+
     return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
 
@@ -443,6 +456,9 @@ def global_defi_market(
         elif ext == "json":
             with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
                 json_file.write(str(global_defi_json))
+
+        elif ext == "xlsx":
+            pd_global_data_df.to_excel(f"{name}.{ext}", sheet_name="GLOBAL_DEFI", header=False)
 
     return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
@@ -479,6 +495,9 @@ def trending_top7(
         elif ext == "json":
             with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
                 json_file.write(str(trending_data_json))
+
+        elif ext == "xlsx":
+            df_concat.to_excel(f"{name}.{ext}", sheet_name="TRENDING_TOP7", header=False)
 
     return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
@@ -522,6 +541,9 @@ def companies(
             with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
                 json_file.write(str(companies_json))
 
+        elif ext == "xlsx":
+            df_concat.to_excel(f"{name}.{ext}", sheet_name="COMPANIES")
+
     return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
 
@@ -564,7 +586,7 @@ extension_default.add_argument(
     "-e",
     "--extension",
     default=["csv"],
-    choices=["csv", "html", "json"],
+    choices=["csv", "html", "json", "xlsx"],
     nargs="+",
     metavar="str",
     help="""Selects CSV, HTML and JSON output file extensions"""
