@@ -3,7 +3,7 @@ Python wrapper for the [CoinGecko API](https://www.coingecko.com/en/api/document
 
 # Preview options
 ```
-usage: pycoin.py [-h] [-n str] [-e str] [-P] [-p int] [-t int] [-c str] [-g] [-G] [-T] [-V] [-v]
+usage: pycoin.py [-h] [-n str] [-e str [str ...]] [-P] [-C] [-p int] [-t int] [-c str] [-E] [-g] [-G] [-T] [-H bitcoin, ethereum] [-V] [-v]
 
 Use of the CoinGecko API by generating a CSV, HTML AND JSON file, with the non-exhaustive list of Cryptocurrency.
 
@@ -12,26 +12,37 @@ options:
   -V, --version         show program's version number and exit
   -v, --verbose         increase output visibility
 
-  -n str, --name str    Define output file name. default 'market'
+  -n str, --name str    Define output file name. default 'markets'
 
-  -e str, --extension str
+  -e str [str ...], --extension str [str ...]
                         Selects CSV, HTML and JSON output file extensions
 
 Status Server:
   -P, --ping            check API server status
 
-Options market:
+Coins List:
+  -C, --coins_list      List all coins with id, name, and symbol. All the coins that show up on this /coins/list endpoint are Active coins that listed by
+                        CoinGecko team on CoinGecko.com. If a coin is inactive or deactivated, it will be removed from /coins/list
+
+Options Markets:
   -p int, --page int    Customization of the number of pages to generate in the *.csv, do not exceed 15 for the page generation value
   -t int, --time int    Define waiting time in seconds between each request, Avoid values below 5 seconds (default is 25 seconds)
   -c str, --currency str
                         Choose the type of currency we want, USD being the default currency. Choice: usd, eur, cad, gbp, etc
 
+Options Exchanges:
+  -E, --exchanges       List all exchanges (Active with trading volumes)
+
 Get cryptocurrency global data:
   -g, --global          Get global data - total_volume, total_market_cap, ongoing icos etc
   -G, --global_defi     Get Top 100 Cryptocurrency Global Eecentralized Finance(defi) data
 
-Top-7 trending coins on CoinGecko:
+Get Top-7 trending coins:
   -T, --trending        Top-7 trending coins on CoinGecko as searched by users in the last 24 hours (Ordered by most popular first).
+
+Get public companies data (beta):
+  -H bitcoin, ethereum, --companies bitcoin, ethereum
+                        Get public companies bitcoin or ethereum holdings (Ordered by total holdings descending)
 
 Pycoin home page: <https://github.com/PhineasPhreak/pycoin>
 
@@ -61,7 +72,7 @@ python3 -m venv env
 ```
 
 ## Installation Prerequisites
-Used Prerequisites `pandas`, `rich`, `requests` and `pyinstaller`, `pyinstaller-versionfile`
+Used Prerequisites `pandas`, `rich`, `requests`, `openpyxl` and `pyinstaller`, `pyinstaller-versionfile`
 > Documentations :
 >
 > pandas : [pandas pypi.org](https://pypi.org/project/pandas/) \
