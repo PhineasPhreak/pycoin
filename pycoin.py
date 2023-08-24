@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+# PIP3 install : pandas, rich, requests
 
 import argparse
 import time
@@ -89,6 +89,8 @@ def coins_list(
 ):
     """
     Liste de toutes les cryptos prises en charge (id, name et symbol)
+    :param extension: Gestion des extensions du fichier de donner, les possibilités sont sont CSV, HTML et JSON.
+    :param name: Nom du fichier de donner, par défaut "coins_list"
     :param: include_platform: pour inclure les adresses des contrats de plateforme (par exemple, 0x.... pour les jetons basés sur Ethereum).
     :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
     """
@@ -104,10 +106,10 @@ def coins_list(
 
     for ext in extension:
         if ext == "csv":
-            pd_coins_list_df.to_csv(f"{name}.{ext}", header=False)
+            pd_coins_list_df.to_csv(f"{name}.{ext}", index=False)
 
         elif ext == "html":
-            pd_coins_list_df.to_html(f"{name}.{ext}", header=False)
+            pd_coins_list_df.to_html(f"{name}.{ext}", index=False)
 
         elif ext == "json":
             with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
@@ -317,10 +319,10 @@ def exchanges(
 
     for ext in extension:
         if ext == "csv":
-            dt_exchanges.to_csv(f"{name}.{ext}")
+            dt_exchanges.to_csv(f"{name}.{ext}", index=False)
 
         elif ext == "html":
-            dt_exchanges.to_html(f"{name}.{ext}")
+            dt_exchanges.to_html(f"{name}.{ext}", index=False)
 
         elif ext == "json":
             dt_exchanges.to_json(f"{name}.{ext}", orient="columns")
@@ -481,6 +483,48 @@ def trending_top7(
     return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
 
 
+def companies(
+        extension: list,
+        name: str = "companies",
+        coin_id: list = ["bitcoin", "ethereum"]
+):
+    """
+    Obtenir les avoirs en bitcoins ou en ethereum des entreprises publiques (classés par ordre décroissant du nombre total d'avoirs)
+    :param extension: Gestion des extensions du fichier de donner, les possibilités sont sont CSV, HTML et JSON.
+    :param name: Nom du fichier de donner, par défaut "companies"
+    :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
+    """
+
+    dfs = []
+    cg_companies = (
+        f"{API_URL_BASE}companies/public_treasury/{coin_id}"
+    )
+
+    requests_companies = requests.get(cg_companies, timeout=(REQ_CONNECT_TIMEOUT, REQ_READ_TIMEOUT))
+    companies_json = requests_companies.json()
+    companies_json_only_companies = companies_json["companies"]
+
+    pd_companies_df = pd.DataFrame(data=companies_json, columns=["total_holdings", "total_value_usd", "market_cap_dominance"], index=[""])
+    pd_companies_df_only_companies = pd.DataFrame(data=companies_json_only_companies)
+    dfs.append(pd_companies_df)
+    dfs.append(pd_companies_df_only_companies)
+
+    df_concat = pd.concat(dfs)
+
+    for ext in extension:
+        if ext == "csv":
+            df_concat.to_csv(f"{name}.{ext}")
+
+        elif ext == "html":
+            df_concat.to_html(f"{name}.{ext}")
+
+        elif ext == "json":
+            with open(file=f"{name}.{ext}", mode="w", encoding="utf-8") as json_file:
+                json_file.write(str(companies_json))
+
+    return print(f"Create {name}.{extension} in {tmp_action()['tmp_second']}")
+
+
 # Personnalisation de la progress bar.
 progress = Progress(
     TextColumn(text_format="Downloading..."),
@@ -629,13 +673,24 @@ global_data.add_argument(
     help="""Get Top 100 Cryptocurrency Global Eecentralized Finance(defi) data"""
 )
 
-# Génération des tendances de coingecko les dernières 24h
-trending_data = parser.add_argument_group("Top-7 trending coins")
+# Génération des tendances de coingecko sur les dernières 24h
+trending_data = parser.add_argument_group("Get Top-7 trending coins")
 trending_data.add_argument(
     "-T",
     "--trending",
     action="store_true",
     help="""Top-7 trending coins on CoinGecko as searched by users in the last 24 hours (Ordered by most popular first)."""
+)
+
+# Obtenir les avoirs en bitcoins ou en ethereum des entreprises publiques
+companies_arg = parser.add_argument_group("Get public companies data (beta)")
+companies_arg.add_argument(
+    "-H",
+    "--companies",
+    choices=["bitcoin", "ethereum"],
+    default="bitcoin",
+    metavar="bitcoin, ethereum",
+    help="""Get public companies bitcoin or ethereum holdings (Ordered by total holdings descending)"""
 )
 
 # Affiche la version du programme
@@ -663,10 +718,11 @@ args = parser.parse_args()
 if __name__ == '__main__':
     # TODO: Développer davantage le "argparse"...
     # TODO: Ajouter davantage d'option disponible de l'API coingecko...
-    # TODO: Ajouter les fonctionnalités API suivantes: tickers, public_treasury, exchange/tickers.
+    # TODO: Ajouter les fonctionnalités API suivantes: tickers, exchange/tickers.
 
     try:
         if args.verbose:
+            # API: /ping (verbose)
             if args.ping:
                 check_api(visibility="verbose")
 
@@ -703,19 +759,26 @@ if __name__ == '__main__':
                 else:
                     global_data_market(extension=args.extension, name=args.name)
 
-            # APi: /global/decentralized_finance_defi
+            # API: /global/decentralized_finance_defi
             elif args.global_defi:
                 if args.name is None:
                     global_defi_market(extension=args.extension)
                 else:
                     global_defi_market(extension=args.extension, name=args.name)
 
-            # APi: /search/trending
+            # API: /search/trending
             elif args.trending:
                 if args.name is None:
                     trending_top7(extension=args.extension)
                 else:
                     trending_top7(extension=args.extension, name=args.name)
+
+            # API: /companies/public_treasury/{coin_id}
+            elif args.companies:
+                if args.name is None:
+                    companies(extension=args.extension, coin_id=args.companies)
+                else:
+                    companies(extension=args.extension, name=args.name, coin_id=args.companies)
 
             # CODE BLOCK - SI UTILISATION D'UN SUBPARSER...
             # elif args.global_cmd == "global":
