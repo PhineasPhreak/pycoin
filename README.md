@@ -5,7 +5,7 @@ Python wrapper for the [CoinGecko API](https://www.coingecko.com/en/api/document
 ```
 usage: pycoin.py [-h] [-n str] [-e str [str ...]] [-P] [-C] [-p int] [-t int] [-c str] [-E] [-g] [-G] [-T] [-H bitcoin, ethereum] [-V] [-v]
 
-Use of the CoinGecko API by generating a CSV, HTML AND JSON file, with the non-exhaustive list of Cryptocurrency.
+Use of the CoinGecko API by generating a CSV, HTML, JSON and XLSX file, with the non-exhaustive list of Cryptocurrency.
 
 options:
   -h, --help            show this help message and exit
@@ -15,14 +15,14 @@ options:
   -n str, --name str    Define output file name. default 'markets'
 
   -e str [str ...], --extension str [str ...]
-                        Selects CSV, HTML and JSON output file extensions
+                        Selects CSV, HTML, JSON and XLSX output file extensions
 
 Status Server:
   -P, --ping            check API server status
 
 Coins List:
   -C, --coins_list      List all coins with id, name, and symbol. All the coins that show up on this /coins/list endpoint are Active coins that listed by
-                        CoinGecko team on CoinGecko.com. If a coin is inactive or deactivated, it will be removed from /coins/list
+                        CoinGecko.com. If a coin is inactive or deactivated, it will be removed from /coins/list
 
 Options Markets:
   -p int, --page int    Customization of the number of pages to generate in the *.csv, do not exceed 15 for the page generation value
@@ -38,7 +38,7 @@ Get cryptocurrency global data:
   -G, --global_defi     Get Top 100 Cryptocurrency Global Eecentralized Finance(defi) data
 
 Get Top-7 trending coins:
-  -T, --trending        Top-7 trending coins on CoinGecko as searched by users in the last 24 hours (Ordered by most popular first).
+  -T, --trending        Top-7 trending coins on CoinGecko as searched by users in the last 24 hours (Ordered by most popular first)
 
 Get public companies data (beta):
   -H bitcoin, ethereum, --companies bitcoin, ethereum

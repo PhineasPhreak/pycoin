@@ -90,7 +90,7 @@ def coins_list(
 ):
     """
     Liste de toutes les cryptos prises en charge (id, name et symbol)
-    :param extension: Gestion des extensions du fichier de donner, les possibilités sont sont CSV, HTML et JSON.
+    :param extension: Gestion des extensions du fichier de donner, les possibilités sont sont CSV, HTML, JSON et XLSX.
     :param name: Nom du fichier de donner, par défaut "coins_list"
     :param: include_platform: pour inclure les adresses des contrats de plateforme (par exemple, 0x.... pour les jetons basés sur Ethereum).
     :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
@@ -229,7 +229,7 @@ def generate(
 ):
     """
     Création de la fonction pour la génération des fichiers...
-    :param extension: Gestion des extensions du fichier de donner, les possibilités sont sont CSV, HTML et JSON.
+    :param extension: Gestion des extensions du fichier de donner, les possibilités sont sont CSV, HTML, JSON et XLSX.
     :param name: Nom du fichier de donner, par défaut "markets"
     :param pd_index: Détermine si l'index du tableau doit être présent ou pas
     :param time_wait: Définition du temps d'attente en seconde entre chaque requête
@@ -287,7 +287,7 @@ def exchanges(
         page: int = 1
 ):
     """
-    :param extension: Gestion des extensions du fichier de donner, les possibilités sont sont CSV, HTML et JSON.
+    :param extension: Gestion des extensions du fichier de donner, les possibilités sont sont CSV, HTML, JSON et XLSX.
     :param name: Nom du fichier de donner, par défaut "exchanges"
     :param per_page: Valeurs valables : 1[...]250 Total des résultats par page
     :param page: Parcourir les nombres de page demandé, ici seulement une
@@ -346,7 +346,7 @@ def global_data_market(
 ):
     """
     Création de la fonction pour la génération du fichier "global"
-    :param extension: Gestion des extensions du fichier de donner, les deux principales sont CSV, HTML et JSON.
+    :param extension: Gestion des extensions du fichier de donner, les deux principales sont CSV, HTML, JSON et XLSX.
     :param name: Nom du fichier de donner, par défaut "global"
     :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
     """
@@ -437,7 +437,7 @@ def global_defi_market(
 ):
     """
     Création de la fonction pour la génération du fichier "global_defi"
-    :param extension: Gestion des extensions du fichier de donner, les deux principales sont CSV, HTML et JSON.
+    :param extension: Gestion des extensions du fichier de donner, les deux principales sont CSV, HTML, JSON et XLSX.
     :param name: Nom du fichier de donner, par défaut "global_defi"
     :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
     """
@@ -469,7 +469,7 @@ def trending_top7(
 ):
     """
     Création de la fonction pour la génération du fichier "trending_top7"
-    :param extension: Gestion des extensions du fichier de donner, les deux principales sont CSV, HTML et JSON.
+    :param extension: Gestion des extensions du fichier de donner, les deux principales sont CSV, HTML, JSON et XLSX.
     :param name: Nom du fichier de donner, par défaut "trending_top7"
     :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
     """
@@ -509,8 +509,9 @@ def companies(
 ):
     """
     Obtenir les avoirs en bitcoins ou en ethereum des entreprises publiques (classés par ordre décroissant du nombre total d'avoirs)
-    :param extension: Gestion des extensions du fichier de donner, les possibilités sont sont CSV, HTML et JSON.
+    :param extension: Gestion des extensions du fichier de donner, les possibilités sont sont CSV, HTML, JSON et XLSX.
     :param name: Nom du fichier de donner, par défaut "companies"
+    :param coin_id: Obtenir les entreprises qui détiennent le plus de Bitcoin et d'Ethereum.
     :return: Les résultats des différents fichiers CSV ou HTML et JSON ou les erreurs.
     """
 
@@ -564,7 +565,7 @@ parser = argparse.ArgumentParser(
     # Indique que la description et l'épilogue sont déjà correctement formatés et ne doivent pas être entourés de lignes
     # https://docs.python.org/3/library/argparse.html#argparse.RawDescriptionHelpFormatter
     # formatter_class=argparse.RawDescriptionHelpFormatter,
-    description="""Use of the CoinGecko API by generating a CSV, HTML AND JSON file,
+    description="""Use of the CoinGecko API by generating a CSV, HTML, JSON and XLSX file,
     with the non-exhaustive list of Cryptocurrency.""",
     epilog="""Pycoin home page: <https://github.com/PhineasPhreak/pycoin>"""
 )
@@ -589,7 +590,7 @@ extension_default.add_argument(
     choices=["csv", "html", "json", "xlsx"],
     nargs="+",
     metavar="str",
-    help="""Selects CSV, HTML and JSON output file extensions"""
+    help="""Selects CSV, HTML, JSON and XLSX output file extensions"""
 )
 
 # Affiche les messages du serveur de CoinGecko
@@ -608,7 +609,7 @@ coins_list_arg.add_argument(
     "--coins_list",
     action="store_true",
     help="""List all coins with id, name, and symbol.
-    All the coins that show up on this /coins/list endpoint are Active coins that listed by CoinGecko team on CoinGecko.com.
+    All the coins that show up on this /coins/list endpoint are Active coins that listed by CoinGecko.com.
     If a coin is inactive or deactivated, it will be removed from /coins/list"""
 )
 
@@ -701,7 +702,7 @@ trending_data.add_argument(
     "-T",
     "--trending",
     action="store_true",
-    help="""Top-7 trending coins on CoinGecko as searched by users in the last 24 hours (Ordered by most popular first)."""
+    help="""Top-7 trending coins on CoinGecko as searched by users in the last 24 hours (Ordered by most popular first)"""
 )
 
 # Obtenir les avoirs en bitcoins ou en ethereum des entreprises publiques
