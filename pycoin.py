@@ -43,7 +43,7 @@ REQ_CONNECT_TIMEOUT = 25
 REQ_READ_TIMEOUT = 100
 
 # Variable static pour la version de Pycoin
-PYCOIN_VERSION = "1.8.3"
+PYCOIN_VERSION = "1.8.5"
 
 
 def tmp_action():
@@ -711,7 +711,6 @@ companies_arg.add_argument(
     "-H",
     "--companies",
     choices=["bitcoin", "ethereum"],
-    default="bitcoin",
     metavar="bitcoin, ethereum",
     help="""Get public companies bitcoin or ethereum holdings (Ordered by total holdings descending)"""
 )
