@@ -571,8 +571,8 @@ parser = argparse.ArgumentParser(
 )
 
 # Définition de la commande --name qui est une commande commune pour choisir le nom de fichier de sortie que vous souhaitez, mais attention pas son extension. La valeur par défaut comme nom de fichier est "markets".
-name_default = parser.add_argument_group()
-name_default.add_argument(
+cmd_default = parser.add_argument_group()
+cmd_default.add_argument(
     "-n",
     "--name",
     type=str,
@@ -582,8 +582,7 @@ name_default.add_argument(
 
 # Définition de la commande --extension qui est une commande commune pour choisir l'extension du fichier de sortie, les formats possibles sont CSV, HTML, JSON
 # nargs="+": Tous les arguments présents sur la ligne de commande sont capturés dans une liste. De plus, un message d'erreur est produit s'il n'y a pas au moins un argument présent sur la ligne de commande.
-extension_default = parser.add_argument_group()
-extension_default.add_argument(
+cmd_default.add_argument(
     "-e",
     "--extension",
     default=["csv"],
@@ -591,6 +590,17 @@ extension_default.add_argument(
     nargs="+",
     metavar="str",
     help="""Selects CSV, HTML, JSON and XLSX output file extensions"""
+)
+
+# Définition de la commande --currency qui est une commande commune pour choisir le type de devise que nous voulons, USD étant la devise par défaut.
+cmd_default.add_argument(
+    "-c",
+    "--currency",
+    default="usd",
+    type=str,
+    metavar="str",
+    help="""Choose the type of currency we want,
+    USD being the default currency. Choice: usd, eur, cad, gbp, etc"""
 )
 
 # Affiche les messages du serveur de CoinGecko
@@ -635,17 +645,6 @@ market_data.add_argument(
     metavar="int",
     help="""Define waiting time in seconds between each request,
     Avoid values below 5 seconds (default is 25 seconds)"""
-)
-
-# Définition de la commande --currency pour choisir le type de devise que nous voulons, USD étant la devise par défaut.
-market_data.add_argument(
-    "-c",
-    "--currency",
-    default="usd",
-    type=str,
-    metavar="str",
-    help="""Choose the type of currency we want,
-    USD being the default currency. Choice: usd, eur, cad, gbp, etc"""
 )
 
 # Définition de la commande --exchanges pour lister tous les exchanges actif
