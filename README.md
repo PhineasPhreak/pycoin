@@ -3,7 +3,7 @@ Python wrapper for the [CoinGecko API](https://www.coingecko.com/en/api/document
 
 # Preview options
 ```
-usage: pycoin.py [-h] [-n str] [-e str [str ...]] [-P] [-C] [-p int] [-t int] [-c str] [-E] [-g] [-G] [-T] [-H bitcoin, ethereum] [-V] [-v]
+usage: pycoin.py [-h] [-n str] [-e str [str ...]] [-c str] [-P] [-C] [-p int] [-t int] [-E] [-g] [-G] [-T] [-H bitcoin, ethereum] [-V] [-v]
 
 Use of the CoinGecko API by generating a CSV, HTML, JSON and XLSX file, with the non-exhaustive list of Cryptocurrency.
 
@@ -13,9 +13,10 @@ options:
   -v, --verbose         increase output visibility
 
   -n str, --name str    Define output file name. default 'markets'
-
   -e str [str ...], --extension str [str ...]
                         Selects CSV, HTML, JSON and XLSX output file extensions
+  -c str, --currency str
+                        Choose the type of currency we want, USD being the default currency. Choice: usd, eur, cad, gbp, etc
 
 Status Server:
   -P, --ping            check API server status
@@ -27,8 +28,6 @@ Coins List:
 Options Markets:
   -p int, --page int    Customization of the number of pages to generate in the *.csv, do not exceed 15 for the page generation value
   -t int, --time int    Define waiting time in seconds between each request, Avoid values below 5 seconds (default is 25 seconds)
-  -c str, --currency str
-                        Choose the type of currency we want, USD being the default currency. Choice: usd, eur, cad, gbp, etc
 
 Options Exchanges:
   -E, --exchanges       List all exchanges (Active with trading volumes)
