@@ -56,13 +56,6 @@ To install the required packages you also need to have **pip** or **pip3** insta
 
 * `python3-pip` : [pip](https://pypi.org/project/pip/) is the Python package installer
 
-Use the `start.sh` script to install the virtual environment and python packages with the `requirements.txt` file.
-
-Use the script `start.sh`
-```shell
-./start.sh
-```
-
 ## Creating a virtual Python environment
 Using the `python3-venv` package to create the python environment.
 ```shell
@@ -70,7 +63,32 @@ Using the `python3-venv` package to create the python environment.
 python3 -m venv env
 ```
 
-## Installation Prerequisites
+> !NOTE
+> You can use command like `python3 -m venv --clear env` to Delete the contents of the environment directory if it already exists, before environment creation.
+> or
+> `python3 -m venv --upgrade-deps env` to Upgrade core dependencies: pip setuptools to the latest version in PyPI.
+
+## Installation with `setup.py`
+With a proper setup file, Python will quickly understand where to find the package, and thus importing from other places becomes trivial. It will also be possible to quickly distribute the code with other people, diminishing the barrier of adoption. Having a [setup.py](https://pythonforthelab.com/blog/how-create-setup-file-your-project/ "How to create a setup file for your project") file is the first step into being able to switch from scripts to a package on which to rely.
+
+1. Source the virtualenv
+```shell
+source /env/bin/activate
+```
+
+2. PIP install with `setup.py`
+```shell
+pip install .
+```
+
+## Manual Installation Prerequisites
+Use the `start.sh` script to manual install the virtual environment and python packages with the `requirements.txt` file.
+
+Use the script `start.sh`
+```shell
+./start.sh
+```
+
 Used Prerequisites `pandas`, `rich`, `requests`, `openpyxl` and `pyinstaller`, `pyinstaller-versionfile`
 > Documentations :
 >
@@ -81,7 +99,7 @@ Used Prerequisites `pandas`, `rich`, `requests`, `openpyxl` and `pyinstaller`, `
 > pyinstaller : [pyinstaller pypi.org](https://pypi.org/project/pyinstaller/) | [pyinstaller manual](https://pyinstaller.org/en/stable/index.html) \
 > pyinstaller-versionfile : [pyinstaller-version pypi.org](https://pypi.org/project/pyinstaller-versionfile/)
 
-Install prerequisites and all dependencies
+Install prerequisites and all dependencies by hand
 ```shell
 pip3 install -r requirements.txt
 ```
@@ -89,7 +107,7 @@ pip3 install -r requirements.txt
 # Usage
 To start the program simply run :
 ```shell
-python3 pycoin.py
+python3 pycoin.py # or ./pycoin.py
 ```
 
 ## Create a version file from a simple YAML config file

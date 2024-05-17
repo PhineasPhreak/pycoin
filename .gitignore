@@ -1,6 +1,9 @@
 ### VENV ###
 env/
 
+### PIP (INSTALL) ###
+pycoin.egg-info/
+
 ### IDEs ###
 .vscode/
 .idea/
