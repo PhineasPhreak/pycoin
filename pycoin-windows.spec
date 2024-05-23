@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['pycoin.py'],
+    ['pycoin\\pycoin.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -42,5 +42,5 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     version='file_version_info.txt',
-    icon=['src\\icon\\console-csv.ico'],
+    icon=['pycoin\\src\\icon\\console-csv.ico'],
 )

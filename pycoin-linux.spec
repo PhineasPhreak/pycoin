@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['pycoin.py'],
+    ['pycoin\\pycoin.py'],
     pathex=[],
     binaries=[],
     datas=[],

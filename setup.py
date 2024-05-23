@@ -23,9 +23,6 @@ setup(
     #   - MAINTENANCE VERSION 0
     version='1.8.6',
 
-    # Add the python3 module
-    # scripts=['pycoin.py'],
-
     # Here is a small description of the library. This appears
     # when someone searches for the library on https://pypi.org/search.
     description='Python wrapper for the CoinGecko API and argparse',
@@ -39,6 +36,12 @@ setup(
 
     # Here is the URL where you can find the code, in this case on GitHub.
     url='https://github.com/PhineasPhreak/pycoin',
+
+    # Add the python3 module
+    # scripts=['pycoin.py'],
+
+    # Here are the packages I want "build."
+    packages=['pycoin'],
 
     # These are the dependencies the library needs in order to run.
     install_requires=[
